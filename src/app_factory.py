@@ -74,12 +74,25 @@ class DatabaseInstallationStore:
 
 def create_slack_app() -> App:
     """
-    Create and configure Slack Bolt app with OAuth
+    Create and configure Slack Bolt app
+
+    Uses bot token directly if SLACK_BOT_TOKEN is set (single-workspace mode),
+    otherwise uses OAuth for multi-workspace support.
 
     Returns:
         Configured Slack Bolt App instance
     """
-    # OAuth settings
+    # Check if we have a direct bot token (single-workspace mode)
+    if config.SLACK_BOT_TOKEN:
+        logger.info("Creating Slack app in single-workspace mode (using bot token)")
+        app = App(
+            token=config.SLACK_BOT_TOKEN,
+            signing_secret=config.SLACK_SIGNING_SECRET
+        )
+        return app
+
+    # Otherwise use OAuth for multi-workspace support
+    logger.info("Creating Slack app with OAuth support")
     oauth_settings = OAuthSettings(
         client_id=config.SLACK_CLIENT_ID,
         client_secret=config.SLACK_CLIENT_SECRET,
@@ -98,13 +111,11 @@ def create_slack_app() -> App:
         installation_store=DatabaseInstallationStore()
     )
 
-    # Create Slack app
     app = App(
         signing_secret=config.SLACK_SIGNING_SECRET,
         oauth_settings=oauth_settings
     )
 
-    logger.info("Slack Bolt app created with OAuth support")
     return app
 
 

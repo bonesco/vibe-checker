@@ -54,6 +54,40 @@ def init_full_app():
         print("Initializing database...", flush=True)
         init_db()
 
+        # In single-workspace mode, create a default workspace record
+        if config.SLACK_BOT_TOKEN:
+            print("Setting up single-workspace mode...", flush=True)
+            from slack_sdk import WebClient
+            from src.services.workspace_service import get_workspace_by_team_id, create_workspace
+
+            # Get team info using the bot token
+            client = WebClient(token=config.SLACK_BOT_TOKEN)
+            try:
+                auth_response = client.auth_test()
+                team_id = auth_response["team_id"]
+                team_name = auth_response.get("team", "Default Workspace")
+                bot_user_id = auth_response["user_id"]
+
+                print(f"Connected to workspace: {team_name} ({team_id})", flush=True)
+
+                # Check if workspace exists, create if not
+                existing = get_workspace_by_team_id(team_id)
+                if not existing:
+                    print("Creating workspace record...", flush=True)
+                    create_workspace(
+                        team_id=team_id,
+                        team_name=team_name,
+                        bot_token=config.SLACK_BOT_TOKEN,
+                        bot_user_id=bot_user_id,
+                        scope="chat:write,commands,im:write,users:read",
+                        installer_user_id=bot_user_id
+                    )
+                    print("Workspace record created!", flush=True)
+                else:
+                    print("Workspace record already exists.", flush=True)
+            except Exception as e:
+                print(f"Warning: Could not set up workspace: {e}", flush=True)
+
         # Create Slack Bolt app
         print("Creating Slack app...", flush=True)
         slack_app = create_slack_app()

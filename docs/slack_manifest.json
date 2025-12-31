@@ -1,0 +1,93 @@
+{
+  "display_information": {
+    "name": "Vibe Check",
+    "description": "Daily standups and weekly feedback collection for client relationships",
+    "background_color": "#2c2d30",
+    "long_description": "Vibe Check helps maintain strong client relationships through automated daily standups and weekly feedback collection. All communications are private DMs, and feedback is aggregated in a private channel for your team to review."
+  },
+  "features": {
+    "bot_user": {
+      "display_name": "Vibe Check",
+      "always_online": true
+    },
+    "slash_commands": [
+      {
+        "command": "/vibe-add-client",
+        "description": "Add a new client to receive standups",
+        "usage_hint": "",
+        "should_escape": false
+      },
+      {
+        "command": "/vibe-remove-client",
+        "description": "Remove a client from receiving standups",
+        "usage_hint": "@user",
+        "should_escape": false
+      },
+      {
+        "command": "/vibe-list-clients",
+        "description": "List all active clients",
+        "usage_hint": "",
+        "should_escape": false
+      },
+      {
+        "command": "/vibe-pause",
+        "description": "Pause standups for a client",
+        "usage_hint": "@user",
+        "should_escape": false
+      },
+      {
+        "command": "/vibe-resume",
+        "description": "Resume standups for a client",
+        "usage_hint": "@user",
+        "should_escape": false
+      },
+      {
+        "command": "/vibe-test",
+        "description": "Send a test standup to yourself",
+        "usage_hint": "",
+        "should_escape": false
+      },
+      {
+        "command": "/vibe-help",
+        "description": "Show help documentation",
+        "usage_hint": "",
+        "should_escape": false
+      }
+    ]
+  },
+  "oauth_config": {
+    "redirect_urls": [
+      "https://your-app.railway.app/slack/oauth_redirect"
+    ],
+    "scopes": {
+      "bot": [
+        "chat:write",
+        "im:write",
+        "im:history",
+        "users:read",
+        "users:read.email",
+        "channels:read",
+        "channels:manage",
+        "channels:join",
+        "commands",
+        "team:read"
+      ]
+    }
+  },
+  "settings": {
+    "event_subscriptions": {
+      "request_url": "https://your-app.railway.app/slack/events",
+      "bot_events": [
+        "app_home_opened",
+        "team_join"
+      ]
+    },
+    "interactivity": {
+      "is_enabled": true,
+      "request_url": "https://your-app.railway.app/slack/events"
+    },
+    "org_deploy_enabled": false,
+    "socket_mode_enabled": false,
+    "token_rotation_enabled": true
+  }
+}

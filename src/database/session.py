@@ -8,14 +8,23 @@ from src.utils.logger import setup_logger
 
 logger = setup_logger(__name__)
 
-# Create engine with connection pooling
-engine = create_engine(
-    config.DATABASE_URL,
-    pool_pre_ping=True,  # Verify connections before using
-    pool_size=10,
-    max_overflow=20,
-    echo=False  # Set to True for SQL query logging
-)
+# Create engine - use different settings for SQLite vs PostgreSQL
+if config.DATABASE_URL.startswith('sqlite'):
+    # SQLite doesn't support connection pooling the same way
+    engine = create_engine(
+        config.DATABASE_URL,
+        connect_args={"check_same_thread": False},  # Allow multi-threaded access
+        echo=False
+    )
+else:
+    # PostgreSQL with connection pooling
+    engine = create_engine(
+        config.DATABASE_URL,
+        pool_pre_ping=True,
+        pool_size=10,
+        max_overflow=20,
+        echo=False
+    )
 
 # Session factory
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)

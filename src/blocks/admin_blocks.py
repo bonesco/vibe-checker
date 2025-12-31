@@ -1,6 +1,6 @@
 """Block Kit templates for admin commands"""
 
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 from src.models.client import Client
 
 
@@ -221,6 +221,7 @@ def get_help_blocks() -> List[Dict[str, Any]]:
                     "`/vibe-list-clients` - List all active clients\n"
                     "`/vibe-pause` - Pause standups for a client\n"
                     "`/vibe-resume` - Resume standups for a client\n"
+                    "`/vibe-set-channel` - Set the vibe check feedback channel\n"
                     "`/vibe-test` - Send a test standup to yourself\n"
                     "`/vibe-help` - Show this help message"
                 )
@@ -238,6 +239,183 @@ def get_help_blocks() -> List[Dict[str, Any]]:
                        "• Weekly feedback is sent every Friday\n"
                        "• All feedback is posted to your private vibe check channel\n"
                        "• Clients can submit responses using the interactive buttons"
+            }
+        }
+    ]
+
+
+def get_client_select_modal(
+    action: str,
+    clients: List[Client],
+    title: str,
+    submit_text: str,
+    description: str
+) -> Optional[Dict[str, Any]]:
+    """
+    Create a modal for selecting a client
+
+    Args:
+        action: Action type ('pause', 'resume', 'remove')
+        clients: List of Client objects to show in dropdown
+        title: Modal title
+        submit_text: Submit button text
+        description: Description text to show
+
+    Returns:
+        Modal view definition or None if no clients
+    """
+    if not clients:
+        return None
+
+    # Build options from clients
+    options = []
+    for client in clients:
+        display = client.display_name or client.slack_user_id
+        options.append({
+            "text": {"type": "plain_text", "text": display[:75]},  # Slack limit
+            "value": str(client.id)
+        })
+
+    return {
+        "type": "modal",
+        "callback_id": f"{action}_client_modal",
+        "title": {
+            "type": "plain_text",
+            "text": title[:24]  # Slack limit
+        },
+        "submit": {
+            "type": "plain_text",
+            "text": submit_text
+        },
+        "blocks": [
+            {
+                "type": "section",
+                "text": {
+                    "type": "mrkdwn",
+                    "text": description
+                }
+            },
+            {
+                "type": "input",
+                "block_id": "client_select",
+                "element": {
+                    "type": "static_select",
+                    "action_id": "client_select_input",
+                    "placeholder": {
+                        "type": "plain_text",
+                        "text": "Select a client"
+                    },
+                    "options": options
+                },
+                "label": {
+                    "type": "plain_text",
+                    "text": "Client"
+                }
+            }
+        ]
+    }
+
+
+def get_pause_client_modal(clients: List[Client]) -> Optional[Dict[str, Any]]:
+    """Create modal for pausing client standups"""
+    # Filter to only show active (not paused) clients
+    active_clients = [c for c in clients if c.standup_config and not c.standup_config.is_paused]
+    return get_client_select_modal(
+        action="pause",
+        clients=active_clients,
+        title="Pause Standups",
+        submit_text="Pause",
+        description="Select a client to pause their standup messages. They won't receive standups until resumed."
+    )
+
+
+def get_resume_client_modal(clients: List[Client]) -> Optional[Dict[str, Any]]:
+    """Create modal for resuming client standups"""
+    # Filter to only show paused clients
+    paused_clients = [c for c in clients if c.standup_config and c.standup_config.is_paused]
+    return get_client_select_modal(
+        action="resume",
+        clients=paused_clients,
+        title="Resume Standups",
+        submit_text="Resume",
+        description="Select a client to resume their standup messages."
+    )
+
+
+def get_remove_client_modal(clients: List[Client]) -> Optional[Dict[str, Any]]:
+    """Create modal for removing a client"""
+    return get_client_select_modal(
+        action="remove",
+        clients=clients,
+        title="Remove Client",
+        submit_text="Remove",
+        description="⚠️ *Warning:* This will permanently remove the client and all their response history."
+    )
+
+
+def get_set_channel_modal() -> Dict[str, Any]:
+    """Create modal for setting the vibe check channel"""
+    return {
+        "type": "modal",
+        "callback_id": "set_channel_modal",
+        "title": {
+            "type": "plain_text",
+            "text": "Set Vibe Channel"
+        },
+        "submit": {
+            "type": "plain_text",
+            "text": "Set Channel"
+        },
+        "blocks": [
+            {
+                "type": "section",
+                "text": {
+                    "type": "mrkdwn",
+                    "text": "Select the channel where client feedback summaries will be posted."
+                }
+            },
+            {
+                "type": "input",
+                "block_id": "channel_select",
+                "element": {
+                    "type": "channels_select",
+                    "action_id": "channel_select_input",
+                    "placeholder": {
+                        "type": "plain_text",
+                        "text": "Select a channel"
+                    }
+                },
+                "label": {
+                    "type": "plain_text",
+                    "text": "Vibe Check Channel"
+                }
+            },
+            {
+                "type": "context",
+                "elements": [
+                    {
+                        "type": "mrkdwn",
+                        "text": "💡 *Tip:* Use a private channel for confidential feedback."
+                    }
+                ]
+            }
+        ]
+    }
+
+
+def get_no_clients_message(action: str) -> List[Dict[str, Any]]:
+    """Get message blocks when no clients are available for an action"""
+    messages = {
+        "pause": "No active clients to pause. All clients are either already paused or don't have standup configs.",
+        "resume": "No paused clients to resume. Use `/vibe-pause` to pause a client first.",
+        "remove": "No clients found. Use `/vibe-add-client` to add one."
+    }
+    return [
+        {
+            "type": "section",
+            "text": {
+                "type": "mrkdwn",
+                "text": messages.get(action, "No clients found.")
             }
         }
     ]

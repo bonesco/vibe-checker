@@ -1,6 +1,7 @@
 """Workspace model - represents a Slack workspace/team"""
 
-from sqlalchemy import Column, Integer, String, Boolean, ARRAY, Text
+import json
+from sqlalchemy import Column, Integer, String, Boolean, Text
 from sqlalchemy.orm import relationship
 from src.models.base import Base, TimestampMixin
 
@@ -22,7 +23,22 @@ class Workspace(Base, TimestampMixin):
     scope = Column(Text, nullable=False)
     is_active = Column(Boolean, default=True, nullable=False)
     vibe_check_channel_id = Column(String(20), nullable=True)  # Private feedback channel
-    admin_user_ids = Column(ARRAY(String), nullable=True)  # List of admin user IDs
+    _admin_user_ids = Column('admin_user_ids', Text, nullable=True)  # JSON-encoded list
+
+    @property
+    def admin_user_ids(self):
+        """Get admin user IDs as a list"""
+        if self._admin_user_ids:
+            return json.loads(self._admin_user_ids)
+        return []
+
+    @admin_user_ids.setter
+    def admin_user_ids(self, value):
+        """Set admin user IDs from a list"""
+        if value:
+            self._admin_user_ids = json.dumps(value)
+        else:
+            self._admin_user_ids = None
 
     # Relationships
     clients = relationship('Client', back_populates='workspace', cascade='all, delete-orphan')

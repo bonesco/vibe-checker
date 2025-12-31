@@ -20,7 +20,7 @@
       {
         "command": "/vibe-remove-client",
         "description": "Remove a client from receiving standups",
-        "usage_hint": "@user",
+        "usage_hint": "",
         "should_escape": false
       },
       {
@@ -32,13 +32,19 @@
       {
         "command": "/vibe-pause",
         "description": "Pause standups for a client",
-        "usage_hint": "@user",
+        "usage_hint": "",
         "should_escape": false
       },
       {
         "command": "/vibe-resume",
         "description": "Resume standups for a client",
-        "usage_hint": "@user",
+        "usage_hint": "",
+        "should_escape": false
+      },
+      {
+        "command": "/vibe-set-channel",
+        "description": "Set the channel for vibe check feedback",
+        "usage_hint": "",
         "should_escape": false
       },
       {

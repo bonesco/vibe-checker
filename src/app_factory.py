@@ -141,9 +141,10 @@ def create_flask_app(slack_app: App) -> Flask:
         """Health check endpoint for Railway"""
         try:
             # Check database connection
+            from sqlalchemy import text
             from src.database.session import engine
             with engine.connect() as conn:
-                conn.execute("SELECT 1")
+                conn.execute(text("SELECT 1"))
 
             # Check scheduler status
             from src.services.scheduler_service import scheduler

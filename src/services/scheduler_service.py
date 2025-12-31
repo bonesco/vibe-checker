@@ -27,9 +27,17 @@ def init_scheduler():
         return scheduler
 
     # Configure job stores and executors
-    jobstores = {
-        'default': SQLAlchemyJobStore(url=config.DATABASE_URL)
-    }
+    # Use memory store for SQLite (simpler), SQLAlchemy for PostgreSQL
+    if config.DATABASE_URL.startswith('sqlite'):
+        from apscheduler.jobstores.memory import MemoryJobStore
+        jobstores = {
+            'default': MemoryJobStore()
+        }
+        logger.info("Using in-memory job store (SQLite mode)")
+    else:
+        jobstores = {
+            'default': SQLAlchemyJobStore(url=config.DATABASE_URL)
+        }
 
     executors = {
         'default': ThreadPoolExecutor(20)

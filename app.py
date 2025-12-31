@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 """
 Vibe Check Slack App - Main Entry Point
-
-Professional client communication app with daily standups and weekly feedback collection
 """
 
 import os
@@ -21,6 +19,7 @@ def health():
 def home():
     return "<h1>Vibe Check</h1><p>App is starting...</p>"
 
+
 def init_full_app():
     """Initialize the full Slack app"""
     global flask_app
@@ -30,65 +29,56 @@ def init_full_app():
         print("Starting Vibe Check Slack App...", flush=True)
         print("=" * 50, flush=True)
 
-        # Import after basic Flask app is created
+        # Import dependencies
         from src.config import config, validate_environment
-        from src.utils.logger import setup_logger
         from src.app_factory import create_slack_app, create_flask_app
         from src.database.session import init_db
 
-        logger = setup_logger(__name__)
-
-        # Validate environment configuration
+        # Validate environment
         print("Validating environment...", flush=True)
         if not validate_environment():
             print("ERROR: Environment validation failed!", flush=True)
             return
 
-        # Debug: Check if bot token is set
-        bot_token = config.SLACK_BOT_TOKEN
-        print(f"SLACK_BOT_TOKEN set: {bool(bot_token)}", flush=True)
-        if bot_token:
-            print(f"SLACK_BOT_TOKEN starts with: {bot_token[:10]}...", flush=True)
+        # Check bot token
+        if not config.SLACK_BOT_TOKEN:
+            print("ERROR: SLACK_BOT_TOKEN is required!", flush=True)
+            return
+
+        print(f"Bot token configured: {config.SLACK_BOT_TOKEN[:15]}...", flush=True)
 
         # Initialize database
         print("Initializing database...", flush=True)
         init_db()
 
-        # In single-workspace mode, create a default workspace record
-        if config.SLACK_BOT_TOKEN:
-            print("Setting up single-workspace mode...", flush=True)
-            from slack_sdk import WebClient
-            from src.services.workspace_service import get_workspace_by_team_id, create_workspace
+        # Bootstrap workspace for single-workspace mode
+        print("Setting up workspace...", flush=True)
+        from slack_sdk import WebClient
+        from src.services.workspace_service import get_workspace_by_team_id, create_workspace
 
-            # Get team info using the bot token
-            client = WebClient(token=config.SLACK_BOT_TOKEN)
-            try:
-                auth_response = client.auth_test()
-                team_id = auth_response["team_id"]
-                team_name = auth_response.get("team", "Default Workspace")
-                bot_user_id = auth_response["user_id"]
+        slack_client = WebClient(token=config.SLACK_BOT_TOKEN)
+        auth_info = slack_client.auth_test()
+        team_id = auth_info["team_id"]
+        team_name = auth_info.get("team", "Workspace")
+        bot_user_id = auth_info["user_id"]
 
-                print(f"Connected to workspace: {team_name} ({team_id})", flush=True)
+        print(f"Connected to: {team_name} ({team_id})", flush=True)
 
-                # Check if workspace exists, create if not
-                existing = get_workspace_by_team_id(team_id)
-                if not existing:
-                    print("Creating workspace record...", flush=True)
-                    create_workspace(
-                        team_id=team_id,
-                        team_name=team_name,
-                        bot_token=config.SLACK_BOT_TOKEN,
-                        bot_user_id=bot_user_id,
-                        scope="chat:write,commands,im:write,users:read",
-                        installer_user_id=bot_user_id
-                    )
-                    print("Workspace record created!", flush=True)
-                else:
-                    print("Workspace record already exists.", flush=True)
-            except Exception as e:
-                print(f"Warning: Could not set up workspace: {e}", flush=True)
+        # Create workspace if it doesn't exist
+        if not get_workspace_by_team_id(team_id):
+            print("Creating workspace record...", flush=True)
+            create_workspace(
+                team_id=team_id,
+                team_name=team_name,
+                bot_token=config.SLACK_BOT_TOKEN,
+                bot_user_id=bot_user_id,
+                scope="chat:write,commands,im:write,users:read",
+                installer_user_id=bot_user_id
+            )
+        else:
+            print("Workspace already exists.", flush=True)
 
-        # Create Slack Bolt app
+        # Create Slack app
         print("Creating Slack app...", flush=True)
         slack_app = create_slack_app()
 
@@ -101,22 +91,22 @@ def init_full_app():
         events.register(slack_app)
 
         # Initialize scheduler
-        print("Initializing scheduler...", flush=True)
+        print("Starting scheduler...", flush=True)
         from src.services.scheduler_service import init_scheduler
         init_scheduler()
 
-        # Replace with full Flask app
-        print("Creating full Flask app...", flush=True)
+        # Create Flask app
+        print("Creating Flask app...", flush=True)
         flask_app = create_flask_app(slack_app)
 
         print("=" * 50, flush=True)
-        print(f"Vibe Check is ready!", flush=True)
+        print("Vibe Check is ready!", flush=True)
         print("=" * 50, flush=True)
 
     except Exception as e:
-        print(f"ERROR during initialization: {e}", flush=True)
+        print(f"ERROR: {e}", flush=True)
         print(traceback.format_exc(), flush=True)
-        # Keep the minimal flask_app running so health checks pass
+
 
 # Initialize on import
 init_full_app()

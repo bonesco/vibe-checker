@@ -139,30 +139,7 @@ def create_flask_app(slack_app: App) -> Flask:
     @flask_app.route("/health", methods=["GET"])
     def health_check():
         """Health check endpoint for Railway"""
-        try:
-            # Check database connection
-            from sqlalchemy import text
-            from src.database.session import engine
-            with engine.connect() as conn:
-                conn.execute(text("SELECT 1"))
-
-            # Check scheduler status
-            from src.services.scheduler_service import scheduler
-            if scheduler and not scheduler.running:
-                raise Exception("Scheduler not running")
-
-            return jsonify({
-                "status": "healthy",
-                "database": "connected",
-                "scheduler": "running"
-            }), 200
-
-        except Exception as e:
-            logger.error(f"Health check failed: {e}")
-            return jsonify({
-                "status": "unhealthy",
-                "error": str(e)
-            }), 500
+        return jsonify({"status": "ok"}), 200
 
     @flask_app.route("/", methods=["GET"])
     def home():

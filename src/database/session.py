@@ -8,18 +8,23 @@ from src.utils.logger import setup_logger
 
 logger = setup_logger(__name__)
 
+# Fix Railway's postgres:// URL to postgresql:// (required by SQLAlchemy 2.0+)
+database_url = config.DATABASE_URL
+if database_url.startswith('postgres://'):
+    database_url = database_url.replace('postgres://', 'postgresql://', 1)
+
 # Create engine - use different settings for SQLite vs PostgreSQL
-if config.DATABASE_URL.startswith('sqlite'):
+if database_url.startswith('sqlite'):
     # SQLite doesn't support connection pooling the same way
     engine = create_engine(
-        config.DATABASE_URL,
+        database_url,
         connect_args={"check_same_thread": False},  # Allow multi-threaded access
         echo=False
     )
 else:
     # PostgreSQL with connection pooling
     engine = create_engine(
-        config.DATABASE_URL,
+        database_url,
         pool_pre_ping=True,
         pool_size=10,
         max_overflow=20,

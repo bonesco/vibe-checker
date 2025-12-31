@@ -82,11 +82,19 @@ def create_slack_app() -> App:
     Returns:
         Configured Slack Bolt App instance
     """
+    import os
+
     # Check if we have a direct bot token (single-workspace mode)
-    if config.SLACK_BOT_TOKEN:
+    bot_token = config.SLACK_BOT_TOKEN
+    if bot_token:
         logger.info("Creating Slack app in single-workspace mode (using bot token)")
+
+        # Remove from env so Slack Bolt doesn't try to use it in OAuth mode
+        if 'SLACK_BOT_TOKEN' in os.environ:
+            del os.environ['SLACK_BOT_TOKEN']
+
         app = App(
-            token=config.SLACK_BOT_TOKEN,
+            token=bot_token,
             signing_secret=config.SLACK_SIGNING_SECRET
         )
         return app

@@ -44,6 +44,12 @@ def init_full_app():
             print("ERROR: Environment validation failed!", flush=True)
             return
 
+        # Debug: Check if bot token is set
+        bot_token = config.SLACK_BOT_TOKEN
+        print(f"SLACK_BOT_TOKEN set: {bool(bot_token)}", flush=True)
+        if bot_token:
+            print(f"SLACK_BOT_TOKEN starts with: {bot_token[:10]}...", flush=True)
+
         # Initialize database
         print("Initializing database...", flush=True)
         init_db()

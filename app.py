@@ -7,104 +7,81 @@ Professional client communication app with daily standups and weekly feedback co
 
 import os
 import sys
-from src.config import config, validate_environment
-from src.utils.logger import setup_logger
-from src.app_factory import create_slack_app, create_flask_app
-from src.database.session import init_db
+import traceback
+from flask import Flask, jsonify
 
-logger = setup_logger(__name__)
+# Create a minimal Flask app first (so health checks work even if main app fails)
+flask_app = Flask(__name__)
 
+@flask_app.route("/health", methods=["GET"])
+def health():
+    return jsonify({"status": "ok"}), 200
 
-def register_handlers(app):
-    """
-    Register all Slack event handlers, commands, and actions
+@flask_app.route("/", methods=["GET"])
+def home():
+    return "<h1>Vibe Check</h1><p>App is starting...</p>"
 
-    Args:
-        app: Slack Bolt App instance
-    """
-    from src.handlers import commands, actions, views, events
+def init_full_app():
+    """Initialize the full Slack app"""
+    global flask_app
 
-    # Register command handlers
-    logger.info("Registering slash commands...")
-    commands.register(app)
+    try:
+        print("=" * 50, flush=True)
+        print("Starting Vibe Check Slack App...", flush=True)
+        print("=" * 50, flush=True)
 
-    # Register action handlers (Block Kit interactions)
-    logger.info("Registering action handlers...")
-    actions.register(app)
+        # Import after basic Flask app is created
+        from src.config import config, validate_environment
+        from src.utils.logger import setup_logger
+        from src.app_factory import create_slack_app, create_flask_app
+        from src.database.session import init_db
 
-    # Register view handlers (Modal submissions)
-    logger.info("Registering view handlers...")
-    views.register(app)
+        logger = setup_logger(__name__)
 
-    # Register event handlers
-    logger.info("Registering event handlers...")
-    events.register(app)
+        # Validate environment configuration
+        print("Validating environment...", flush=True)
+        if not validate_environment():
+            print("ERROR: Environment validation failed!", flush=True)
+            return
 
-    # Global error handler
-    @app.error
-    def custom_error_handler(error, body, logger):
-        """Handle errors globally"""
-        logger.exception(f"Error: {error}")
-        logger.error(f"Request body: {body}")
-        return {
-            "response_type": "ephemeral",
-            "text": f"Sorry, something went wrong: {str(error)}\nOur team has been notified."
-        }
+        # Initialize database
+        print("Initializing database...", flush=True)
+        init_db()
 
-    logger.info("All handlers registered successfully")
+        # Create Slack Bolt app
+        print("Creating Slack app...", flush=True)
+        slack_app = create_slack_app()
 
+        # Register handlers
+        print("Registering handlers...", flush=True)
+        from src.handlers import commands, actions, views, events
+        commands.register(slack_app)
+        actions.register(slack_app)
+        views.register(slack_app)
+        events.register(slack_app)
 
-def create_app():
-    """
-    Create and configure the Flask app for gunicorn
+        # Initialize scheduler
+        print("Initializing scheduler...", flush=True)
+        from src.services.scheduler_service import init_scheduler
+        init_scheduler()
 
-    Returns:
-        Configured Flask app
-    """
-    logger.info("=" * 50)
-    logger.info("Starting Vibe Check Slack App...")
-    logger.info("=" * 50)
+        # Replace with full Flask app
+        print("Creating full Flask app...", flush=True)
+        flask_app = create_flask_app(slack_app)
 
-    # Validate environment configuration
-    if not validate_environment():
-        logger.error("Environment validation failed. Please check your configuration.")
-        sys.exit(1)
+        print("=" * 50, flush=True)
+        print(f"Vibe Check is ready!", flush=True)
+        print("=" * 50, flush=True)
 
-    # Initialize database
-    logger.info("Initializing database...")
-    init_db()
+    except Exception as e:
+        print(f"ERROR during initialization: {e}", flush=True)
+        print(traceback.format_exc(), flush=True)
+        # Keep the minimal flask_app running so health checks pass
 
-    # Create Slack Bolt app
-    logger.info("Creating Slack app...")
-    slack_app = create_slack_app()
-
-    # Register handlers
-    logger.info("Registering event handlers...")
-    register_handlers(slack_app)
-
-    # Initialize scheduler
-    logger.info("Initializing job scheduler...")
-    from src.services.scheduler_service import init_scheduler
-    init_scheduler()
-
-    # Create Flask app
-    logger.info("Creating Flask app...")
-    flask_application = create_flask_app(slack_app)
-
-    logger.info("=" * 50)
-    logger.info(f"Vibe Check is ready on port {config.PORT}")
-    logger.info("=" * 50)
-
-    return flask_application
-
-
-# Create flask_app at module level for gunicorn
-flask_app = create_app()
+# Initialize on import
+init_full_app()
 
 
 if __name__ == "__main__":
-    flask_app.run(
-        host="0.0.0.0",
-        port=config.PORT,
-        debug=False
-    )
+    port = int(os.environ.get("PORT", 8000))
+    flask_app.run(host="0.0.0.0", port=port, debug=False)

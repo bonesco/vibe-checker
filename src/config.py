@@ -13,24 +13,26 @@ load_dotenv()
 class Config:
     """Application configuration from environment variables"""
 
-    # Slack Configuration
+    # Required - Slack Configuration
     SLACK_CLIENT_ID: str
     SLACK_CLIENT_SECRET: str
     SLACK_SIGNING_SECRET: str
-    SLACK_BOT_TOKEN: Optional[str] = None  # Not needed for multi-workspace
 
-    # Database Configuration
+    # Required - Database Configuration
     DATABASE_URL: str
 
-    # Security
+    # Required - Security
     ENCRYPTION_KEY: str
 
-    # Application Settings
+    # Optional - Slack
+    SLACK_BOT_TOKEN: Optional[str] = None  # Not needed for multi-workspace
+
+    # Optional - Application Settings
     PORT: int = 8000
     LOG_LEVEL: str = "INFO"
     RAILWAY_STATIC_URL: Optional[str] = None
 
-    # Feature Flags
+    # Optional - Feature Flags
     ENABLE_REMINDERS: bool = True
     REMINDER_DELAY_HOURS: int = 4
     DATA_RETENTION_DAYS: int = 90

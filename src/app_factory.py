@@ -459,11 +459,11 @@ def create_flask_app(slack_app: App) -> Flask:
 
             # Get recent responses
             recent_standups = session.query(StandupResponse).order_by(
-                StandupResponse.created_at.desc()
+                StandupResponse.submitted_at.desc()
             ).limit(5).all()
 
             recent_feedbacks = session.query(FeedbackResponse).order_by(
-                FeedbackResponse.created_at.desc()
+                FeedbackResponse.submitted_at.desc()
             ).limit(5).all()
 
             responses = []

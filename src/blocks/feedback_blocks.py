@@ -64,11 +64,11 @@ def get_feedback_message_blocks(client_id: int, week_ending: date) -> List[Dict[
         {
             "type": "input",
             "block_id": f"feeling_text_{client_id}_{week_key}",
+            "optional": True,
             "element": {
                 "type": "plain_text_input",
                 "action_id": "feeling_text_input",
                 "multiline": True,
-                "optional": True,
                 "placeholder": {
                     "type": "plain_text",
                     "text": "Want to share more about how you're feeling?"
@@ -82,11 +82,11 @@ def get_feedback_message_blocks(client_id: int, week_ending: date) -> List[Dict[
         {
             "type": "input",
             "block_id": f"improvements_{client_id}_{week_key}",
+            "optional": True,
             "element": {
                 "type": "plain_text_input",
                 "action_id": "improvements_input",
                 "multiline": True,
-                "optional": True,
                 "placeholder": {
                     "type": "plain_text",
                     "text": "What could we improve?"
@@ -100,11 +100,11 @@ def get_feedback_message_blocks(client_id: int, week_ending: date) -> List[Dict[
         {
             "type": "input",
             "block_id": f"blockers_{client_id}_{week_key}",
+            "optional": True,
             "element": {
                 "type": "plain_text_input",
                 "action_id": "blockers_input",
                 "multiline": True,
-                "optional": True,
                 "placeholder": {
                     "type": "plain_text",
                     "text": "Any blockers or concerns?"

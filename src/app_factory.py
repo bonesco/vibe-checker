@@ -198,13 +198,12 @@ DASHBOARD_HTML = """
                         {% for client in clients %}
                         <tr>
                             <td>
-                                <strong>{{ client.display_name or client.slack_user_id }}</strong>
+                                <strong>{{ client.display_name }}</strong>
                                 <br><small style="color:#666">{{ client.timezone }}</small>
                             </td>
                             <td>
-                                {% if client.standup_config %}
-                                    {{ 'Daily' if client.standup_config.schedule_type == 'daily' else 'Mondays' }}
-                                    at {{ client.standup_config.schedule_time.strftime('%I:%M %p') }}
+                                {% if client.schedule %}
+                                    {{ client.schedule }}
                                 {% else %}
                                     <span style="color:#999">Not configured</span>
                                 {% endif %}
@@ -217,7 +216,7 @@ DASHBOARD_HTML = """
                                 {% endif %}
                             </td>
                             <td>
-                                {% if client.standup_config and client.standup_config.is_paused %}
+                                {% if client.is_paused %}
                                     <span class="badge badge-warning">⏸ Paused</span>
                                 {% elif client.is_active %}
                                     <span class="badge badge-success">✓ Active</span>
@@ -226,8 +225,8 @@ DASHBOARD_HTML = """
                                 {% endif %}
                             </td>
                             <td class="actions">
-                                <a href="/admin/send/standup/{{ client.id }}" class="btn btn-success btn-sm" onclick="return confirm('Send standup to {{ client.display_name or client.slack_user_id }} now?')">Send Now</a>
-                                <a href="/admin/send/feedback/{{ client.id }}" class="btn btn-info btn-sm" style="background:#17a2b8" onclick="return confirm('Send feedback form to {{ client.display_name or client.slack_user_id }} now?')">Feedback</a>
+                                <a href="/admin/send/standup/{{ client.id }}" class="btn btn-success btn-sm" onclick="return confirm('Send standup to {{ client.display_name }} now?')">Send Now</a>
+                                <a href="/admin/send/feedback/{{ client.id }}" class="btn btn-info btn-sm" style="background:#17a2b8" onclick="return confirm('Send feedback form to {{ client.display_name }} now?')">Feedback</a>
                             </td>
                         </tr>
                         {% endfor %}
@@ -397,6 +396,7 @@ def create_flask_app(slack_app: App) -> Flask:
     @flask_app.route("/admin/", methods=["GET"])
     def admin_dashboard():
         """Admin dashboard"""
+        from sqlalchemy.orm import joinedload
         from src.database.session import get_session
         from src.models.client import Client
         from src.models.standup_response import StandupResponse
@@ -406,8 +406,11 @@ def create_flask_app(slack_app: App) -> Flask:
 
         session = get_session()
         try:
-            # Get all clients with their configs
-            clients = session.query(Client).filter_by(is_active=True).all()
+            # Get all clients with their configs (eager load relationships)
+            clients = session.query(Client).options(
+                joinedload(Client.standup_config),
+                joinedload(Client.feedback_config)
+            ).filter_by(is_active=True).all()
 
             # Get scheduled jobs
             jobs = get_scheduled_jobs()
@@ -425,9 +428,24 @@ def create_flask_app(slack_app: App) -> Flask:
                     except (ValueError, IndexError):
                         pass
 
-            # Add next_run to clients
+            # Build client data list to avoid template issues with ORM objects
+            client_data = []
             for client in clients:
-                client.next_run = job_next_runs.get(client.id)
+                schedule_str = None
+                if client.standup_config and client.standup_config.schedule_time:
+                    schedule_type = 'Daily' if client.standup_config.schedule_type == 'daily' else 'Mondays'
+                    schedule_time = client.standup_config.schedule_time.strftime('%I:%M %p')
+                    schedule_str = f"{schedule_type} at {schedule_time}"
+
+                client_data.append({
+                    'id': client.id,
+                    'display_name': client.display_name or client.slack_user_id,
+                    'timezone': client.timezone,
+                    'schedule': schedule_str,
+                    'next_run': job_next_runs.get(client.id),
+                    'is_active': client.is_active,
+                    'is_paused': client.standup_config.is_paused if client.standup_config else False
+                })
 
             # Get today's responses
             today = date.today()
@@ -472,19 +490,22 @@ def create_flask_app(slack_app: App) -> Flask:
             responses = responses[:10]
 
             stats = {
-                'total_clients': len(clients),
-                'active_clients': len([c for c in clients if c.standup_config and not c.standup_config.is_paused]),
+                'total_clients': len(client_data),
+                'active_clients': len([c for c in client_data if not c['is_paused']]),
                 'scheduled_jobs': len(jobs),
                 'responses_today': standup_responses_today + feedback_responses_today
             }
 
             return render_template_string(
                 DASHBOARD_HTML,
-                clients=clients,
+                clients=client_data,
                 jobs=jobs,
                 responses=responses,
                 stats=stats
             )
+        except Exception as e:
+            logger.error(f"Admin dashboard error: {e}", exc_info=True)
+            return f"<h1>Dashboard Error</h1><pre>{e}</pre>", 500
         finally:
             session.close()
 

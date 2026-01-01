@@ -59,7 +59,15 @@ def create_flask_app(slack_app: App) -> Flask:
     @flask_app.route("/slack/events", methods=["POST"])
     def slack_events():
         """Handle Slack events and interactivity"""
-        return handler.handle(request)
+        # Log incoming requests for debugging
+        logger.info(f"Received Slack request: {request.content_type}")
+        try:
+            result = handler.handle(request)
+            logger.info(f"Slack request handled successfully")
+            return result
+        except Exception as e:
+            logger.error(f"Error handling Slack request: {e}", exc_info=True)
+            raise
 
     @flask_app.route("/health", methods=["GET"])
     def health_check():

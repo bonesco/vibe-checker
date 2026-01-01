@@ -78,7 +78,7 @@ def save_feedback_response(
     blockers: str,
     satisfaction_rating: int,
     message_ts: str,
-    start_time: datetime
+    start_time: datetime = None  # Deprecated - now calculated from message_ts
 ) -> FeedbackResponse:
     """
     Save feedback response and post to vibe check channel
@@ -92,14 +92,21 @@ def save_feedback_response(
         improvements: Improvement suggestions
         blockers: Any blockers
         satisfaction_rating: 1-5 satisfaction rating
-        message_ts: Original message timestamp
-        start_time: When message was sent
+        message_ts: Original message timestamp (used to calculate response time)
+        start_time: Deprecated - kept for compatibility
 
     Returns:
         Created FeedbackResponse
     """
     with db_transaction() as session:
-        response_time = int((datetime.utcnow() - start_time).total_seconds())
+        # Calculate response time from Slack message timestamp
+        # message_ts format is "1234567890.123456" (Unix timestamp)
+        try:
+            message_sent_time = datetime.utcfromtimestamp(float(message_ts))
+            response_time = int((datetime.utcnow() - message_sent_time).total_seconds())
+        except (ValueError, TypeError):
+            logger.warning(f"Could not parse message_ts: {message_ts}, using 0 for response time")
+            response_time = 0
 
         # Create response
         response = FeedbackResponse(

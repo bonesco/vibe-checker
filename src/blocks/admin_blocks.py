@@ -223,6 +223,7 @@ def get_help_blocks() -> List[Dict[str, Any]]:
                     "`/vibe-resume` - Resume standups for a client\n"
                     "`/vibe-set-channel` - Set the vibe check feedback channel\n"
                     "`/vibe-test` - Send a test standup to yourself\n"
+                    "`/vibe-test-feedback` - Send a test feedback form to yourself\n"
                     "`/vibe-help` - Show this help message"
                 )
             }

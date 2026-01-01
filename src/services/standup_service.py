@@ -73,7 +73,7 @@ def save_standup_response(
     working_on: str,
     blockers: str,
     message_ts: str,
-    start_time: datetime
+    start_time: datetime = None  # Deprecated - now calculated from message_ts
 ) -> StandupResponse:
     """
     Save standup response to database
@@ -85,14 +85,21 @@ def save_standup_response(
         accomplishments: What was accomplished
         working_on: What they're working on
         blockers: Any blockers
-        message_ts: Slack message timestamp
-        start_time: When the message was sent
+        message_ts: Slack message timestamp (used to calculate response time)
+        start_time: Deprecated - kept for compatibility
 
     Returns:
         Created StandupResponse
     """
     with db_transaction() as session:
-        response_time = int((datetime.utcnow() - start_time).total_seconds())
+        # Calculate response time from Slack message timestamp
+        # message_ts format is "1234567890.123456" (Unix timestamp)
+        try:
+            message_sent_time = datetime.utcfromtimestamp(float(message_ts))
+            response_time = int((datetime.utcnow() - message_sent_time).total_seconds())
+        except (ValueError, TypeError):
+            logger.warning(f"Could not parse message_ts: {message_ts}, using 0 for response time")
+            response_time = 0
 
         response = StandupResponse(
             client_id=client_id,
@@ -106,5 +113,5 @@ def save_standup_response(
         )
         session.add(response)
 
-        logger.info(f"Saved standup response for client {client_id} on {scheduled_date}")
+        logger.info(f"Saved standup response for client {client_id} on {scheduled_date} (response time: {response_time}s)")
         return response

@@ -75,13 +75,15 @@ def register(app):
 
     @app.command("/vibe-test")
     def handle_test(ack, command, client, body):
-        """Send a test standup to the admin"""
+        """Send a test standup to the admin (uses client_id=-1 for test mode)"""
         ack()
         try:
             from datetime import date
             from src.blocks.standup_blocks import get_standup_message_blocks
 
-            blocks = get_standup_message_blocks(0, date.today())
+            # Use client_id=-1 as a sentinel value for test mode
+            # The action handler will recognize this and skip database save
+            blocks = get_standup_message_blocks(-1, date.today())
 
             client.chat_postMessage(
                 channel=command["user_id"],
@@ -92,10 +94,36 @@ def register(app):
             client.chat_postEphemeral(
                 channel=command["channel_id"],
                 user=command["user_id"],
-                text="✅ Test standup sent to your DMs!"
+                text="✅ Test standup sent to your DMs! (This is a test - responses won't be saved)"
             )
         except Exception as e:
             logger.error(f"Error sending test: {e}")
+
+    @app.command("/vibe-test-feedback")
+    def handle_test_feedback(ack, command, client, body):
+        """Send a test feedback form to the admin (uses client_id=-1 for test mode)"""
+        ack()
+        try:
+            from datetime import date
+            from src.blocks.feedback_blocks import get_feedback_message_blocks
+
+            # Use client_id=-1 as a sentinel value for test mode
+            # The action handler will recognize this and skip database save
+            blocks = get_feedback_message_blocks(-1, date.today())
+
+            client.chat_postMessage(
+                channel=command["user_id"],
+                text="Test weekly vibe check",
+                blocks=blocks
+            )
+
+            client.chat_postEphemeral(
+                channel=command["channel_id"],
+                user=command["user_id"],
+                text="✅ Test feedback form sent to your DMs! (This is a test - responses won't be saved)"
+            )
+        except Exception as e:
+            logger.error(f"Error sending test feedback: {e}")
 
     @app.command("/vibe-pause")
     def handle_pause_client(ack, command, client, body):

@@ -75,31 +75,19 @@ def get_add_client_modal() -> Dict[str, Any]:
                 "element": {
                     "type": "radio_buttons",
                     "action_id": "schedule_type_select",
-                    "initial_option": {
-                        "value": "daily",
-                        "text": {"type": "plain_text", "text": "Daily"}
-                    },
                     "options": [
                         {
                             "value": "daily",
                             "text": {
                                 "type": "plain_text",
-                                "text": "Daily"
-                            },
-                            "description": {
-                                "type": "plain_text",
-                                "text": "Send standup request every day"
+                                "text": "Daily - Send standup request every day"
                             }
                         },
                         {
                             "value": "monday_only",
                             "text": {
                                 "type": "plain_text",
-                                "text": "Monday Only"
-                            },
-                            "description": {
-                                "type": "plain_text",
-                                "text": "Send standup request only on Mondays"
+                                "text": "Monday Only - Send standup request on Mondays"
                             }
                         }
                     ]

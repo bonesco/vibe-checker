@@ -1,9 +1,10 @@
 """Slack Bolt app factory"""
 
 import os
+from datetime import datetime
 from slack_bolt import App
 from slack_bolt.adapter.flask import SlackRequestHandler
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, render_template_string
 from src.config import config
 from src.utils.logger import setup_logger
 
@@ -43,6 +44,288 @@ def create_slack_app() -> App:
     return app
 
 
+DASHBOARD_HTML = """
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Vibe Check - Admin Dashboard</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f5f5;
+            color: #333;
+            line-height: 1.6;
+        }
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px 20px;
+            margin-bottom: 30px;
+        }
+        header h1 { font-size: 2em; margin-bottom: 5px; }
+        header p { opacity: 0.9; }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        .stat-card h3 { font-size: 2.5em; color: #667eea; }
+        .stat-card p { color: #666; font-size: 0.9em; }
+        .card {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+        .card-header {
+            background: #f8f9fa;
+            padding: 15px 20px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .card-header h2 { font-size: 1.2em; }
+        .card-body { padding: 20px; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #eee; }
+        th { background: #f8f9fa; font-weight: 600; }
+        tr:hover { background: #f8f9fa; }
+        .badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            font-weight: 500;
+        }
+        .badge-success { background: #d4edda; color: #155724; }
+        .badge-warning { background: #fff3cd; color: #856404; }
+        .badge-info { background: #d1ecf1; color: #0c5460; }
+        .badge-danger { background: #f8d7da; color: #721c24; }
+        .btn {
+            display: inline-block;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9em;
+            text-decoration: none;
+            transition: opacity 0.2s;
+        }
+        .btn:hover { opacity: 0.8; }
+        .btn-primary { background: #667eea; color: white; }
+        .btn-success { background: #28a745; color: white; }
+        .btn-danger { background: #dc3545; color: white; }
+        .btn-sm { padding: 5px 10px; font-size: 0.8em; }
+        .actions { display: flex; gap: 5px; }
+        .empty-state { text-align: center; padding: 40px; color: #666; }
+        .refresh-note { text-align: center; color: #666; font-size: 0.85em; margin-top: 20px; }
+        .status-dot {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 5px;
+        }
+        .status-active { background: #28a745; }
+        .status-paused { background: #ffc107; }
+        .status-inactive { background: #dc3545; }
+        @media (max-width: 768px) {
+            .stats { grid-template-columns: 1fr 1fr; }
+            table { font-size: 0.85em; }
+            th, td { padding: 8px; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>🎭 Vibe Check Dashboard</h1>
+            <p>Manage your client check-ins and view responses</p>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="stats">
+            <div class="stat-card">
+                <h3>{{ stats.total_clients }}</h3>
+                <p>Total Clients</p>
+            </div>
+            <div class="stat-card">
+                <h3>{{ stats.active_clients }}</h3>
+                <p>Active Clients</p>
+            </div>
+            <div class="stat-card">
+                <h3>{{ stats.scheduled_jobs }}</h3>
+                <p>Scheduled Jobs</p>
+            </div>
+            <div class="stat-card">
+                <h3>{{ stats.responses_today }}</h3>
+                <p>Responses Today</p>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h2>📋 Clients</h2>
+                <a href="/admin/refresh" class="btn btn-primary btn-sm">↻ Refresh</a>
+            </div>
+            <div class="card-body">
+                {% if clients %}
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Client</th>
+                            <th>Schedule</th>
+                            <th>Next Send</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for client in clients %}
+                        <tr>
+                            <td>
+                                <strong>{{ client.display_name or client.slack_user_id }}</strong>
+                                <br><small style="color:#666">{{ client.timezone }}</small>
+                            </td>
+                            <td>
+                                {% if client.standup_config %}
+                                    {{ 'Daily' if client.standup_config.schedule_type == 'daily' else 'Mondays' }}
+                                    at {{ client.standup_config.schedule_time.strftime('%I:%M %p') }}
+                                {% else %}
+                                    <span style="color:#999">Not configured</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if client.next_run %}
+                                    {{ client.next_run }}
+                                {% else %}
+                                    <span style="color:#999">-</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if client.standup_config and client.standup_config.is_paused %}
+                                    <span class="badge badge-warning">⏸ Paused</span>
+                                {% elif client.is_active %}
+                                    <span class="badge badge-success">✓ Active</span>
+                                {% else %}
+                                    <span class="badge badge-danger">Inactive</span>
+                                {% endif %}
+                            </td>
+                            <td class="actions">
+                                <a href="/admin/send/standup/{{ client.id }}" class="btn btn-success btn-sm" onclick="return confirm('Send standup to {{ client.display_name or client.slack_user_id }} now?')">Send Now</a>
+                                <a href="/admin/send/feedback/{{ client.id }}" class="btn btn-info btn-sm" style="background:#17a2b8" onclick="return confirm('Send feedback form to {{ client.display_name or client.slack_user_id }} now?')">Feedback</a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <div class="empty-state">
+                    <p>No clients yet. Use <code>/vibe-add-client</code> in Slack to add clients.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h2>⏰ Scheduled Jobs</h2>
+            </div>
+            <div class="card-body">
+                {% if jobs %}
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Job ID</th>
+                            <th>Type</th>
+                            <th>Next Run</th>
+                            <th>Trigger</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for job in jobs %}
+                        <tr>
+                            <td><code>{{ job.id }}</code></td>
+                            <td>
+                                {% if 'standup' in job.id %}
+                                    <span class="badge badge-info">Standup</span>
+                                {% else %}
+                                    <span class="badge badge-success">Feedback</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ job.next_run or 'Not scheduled' }}</td>
+                            <td><small>{{ job.trigger }}</small></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <div class="empty-state">
+                    <p>No scheduled jobs. Jobs are created when you add clients.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h2>📊 Recent Responses</h2>
+            </div>
+            <div class="card-body">
+                {% if responses %}
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Client</th>
+                            <th>Type</th>
+                            <th>Date</th>
+                            <th>Response Time</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for response in responses %}
+                        <tr>
+                            <td>{{ response.client_name }}</td>
+                            <td>
+                                <span class="badge badge-{{ 'info' if response.type == 'standup' else 'success' }}">
+                                    {{ response.type | capitalize }}
+                                </span>
+                            </td>
+                            <td>{{ response.date }}</td>
+                            <td>{{ response.response_time }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <div class="empty-state">
+                    <p>No responses yet. Responses will appear here once clients submit their standups or feedback.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <p class="refresh-note">Dashboard data refreshes on page load. <a href="/admin">Refresh now</a></p>
+    </div>
+</body>
+</html>
+"""
+
+
 def create_flask_app(slack_app: App) -> Flask:
     """
     Create Flask app for handling HTTP requests
@@ -59,7 +342,6 @@ def create_flask_app(slack_app: App) -> Flask:
     @flask_app.route("/slack/events", methods=["POST"])
     def slack_events():
         """Handle Slack events and interactivity"""
-        # Log incoming requests for debugging
         logger.info(f"Received Slack request: {request.content_type}")
         try:
             result = handler.handle(request)
@@ -76,7 +358,7 @@ def create_flask_app(slack_app: App) -> Flask:
 
     @flask_app.route("/", methods=["GET"])
     def home():
-        """Home page"""
+        """Home page - redirect to admin"""
         return """
         <html>
             <head>
@@ -90,15 +372,203 @@ def create_flask_app(slack_app: App) -> Flask:
                         text-align: center;
                     }
                     h1 { color: #333; }
-                    p { color: #666; }
+                    p { color: #666; margin-bottom: 20px; }
+                    a { color: #667eea; }
+                    .btn {
+                        display: inline-block;
+                        padding: 12px 24px;
+                        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                        color: white;
+                        text-decoration: none;
+                        border-radius: 5px;
+                        margin-top: 20px;
+                    }
                 </style>
             </head>
             <body>
-                <h1>Vibe Check</h1>
+                <h1>🎭 Vibe Check</h1>
                 <p>Slack app is running. Use /vibe-help in Slack to get started.</p>
+                <a href="/admin" class="btn">Open Admin Dashboard</a>
             </body>
         </html>
         """
+
+    @flask_app.route("/admin", methods=["GET"])
+    @flask_app.route("/admin/", methods=["GET"])
+    def admin_dashboard():
+        """Admin dashboard"""
+        from src.database.session import get_session
+        from src.models.client import Client
+        from src.models.standup_response import StandupResponse
+        from src.models.feedback_response import FeedbackResponse
+        from src.services.scheduler_service import get_scheduled_jobs
+        from datetime import date, timedelta
+
+        session = get_session()
+        try:
+            # Get all clients with their configs
+            clients = session.query(Client).filter_by(is_active=True).all()
+
+            # Get scheduled jobs
+            jobs = get_scheduled_jobs()
+
+            # Create a map of job next_run times by client_id
+            job_next_runs = {}
+            for job in jobs:
+                # Parse client_id from job id (format: standup_workspace_clientid or feedback_workspace_clientid)
+                parts = job['id'].split('_')
+                if len(parts) >= 3:
+                    try:
+                        client_id = int(parts[2])
+                        if job['next_run']:
+                            job_next_runs[client_id] = job['next_run'].strftime('%Y-%m-%d %H:%M') if hasattr(job['next_run'], 'strftime') else str(job['next_run'])
+                    except (ValueError, IndexError):
+                        pass
+
+            # Add next_run to clients
+            for client in clients:
+                client.next_run = job_next_runs.get(client.id)
+
+            # Get today's responses
+            today = date.today()
+            standup_responses_today = session.query(StandupResponse).filter(
+                StandupResponse.scheduled_date == today
+            ).count()
+
+            feedback_responses_today = session.query(FeedbackResponse).filter(
+                FeedbackResponse.week_ending >= today - timedelta(days=7)
+            ).count()
+
+            # Get recent responses
+            recent_standups = session.query(StandupResponse).order_by(
+                StandupResponse.created_at.desc()
+            ).limit(5).all()
+
+            recent_feedbacks = session.query(FeedbackResponse).order_by(
+                FeedbackResponse.created_at.desc()
+            ).limit(5).all()
+
+            responses = []
+            for r in recent_standups:
+                client = session.query(Client).filter_by(id=r.client_id).first()
+                responses.append({
+                    'client_name': client.display_name if client else f"Client {r.client_id}",
+                    'type': 'standup',
+                    'date': r.scheduled_date.strftime('%Y-%m-%d') if r.scheduled_date else '-',
+                    'response_time': f"{r.response_time_seconds // 60}m" if r.response_time_seconds else '-'
+                })
+
+            for r in recent_feedbacks:
+                client = session.query(Client).filter_by(id=r.client_id).first()
+                responses.append({
+                    'client_name': client.display_name if client else f"Client {r.client_id}",
+                    'type': 'feedback',
+                    'date': r.week_ending.strftime('%Y-%m-%d') if r.week_ending else '-',
+                    'response_time': f"{r.response_time_seconds // 60}m" if r.response_time_seconds else '-'
+                })
+
+            # Sort responses by date
+            responses.sort(key=lambda x: x['date'], reverse=True)
+            responses = responses[:10]
+
+            stats = {
+                'total_clients': len(clients),
+                'active_clients': len([c for c in clients if c.standup_config and not c.standup_config.is_paused]),
+                'scheduled_jobs': len(jobs),
+                'responses_today': standup_responses_today + feedback_responses_today
+            }
+
+            return render_template_string(
+                DASHBOARD_HTML,
+                clients=clients,
+                jobs=jobs,
+                responses=responses,
+                stats=stats
+            )
+        finally:
+            session.close()
+
+    @flask_app.route("/admin/refresh", methods=["GET"])
+    def admin_refresh():
+        """Refresh and redirect to admin"""
+        from flask import redirect
+        return redirect('/admin')
+
+    @flask_app.route("/admin/send/standup/<int:client_id>", methods=["GET"])
+    def send_standup_now(client_id):
+        """Manually send standup to a client"""
+        from flask import redirect
+        from src.database.session import get_session
+        from src.models.client import Client
+        from src.services.standup_service import send_standup_dm
+
+        session = get_session()
+        try:
+            client = session.query(Client).filter_by(id=client_id).first()
+            if client:
+                send_standup_dm(client.workspace_id, client_id)
+                logger.info(f"Manual standup sent to client {client_id}")
+        except Exception as e:
+            logger.error(f"Error sending manual standup: {e}")
+        finally:
+            session.close()
+
+        return redirect('/admin')
+
+    @flask_app.route("/admin/send/feedback/<int:client_id>", methods=["GET"])
+    def send_feedback_now(client_id):
+        """Manually send feedback to a client"""
+        from flask import redirect
+        from src.database.session import get_session
+        from src.models.client import Client
+        from src.services.feedback_service import send_feedback_dm
+
+        session = get_session()
+        try:
+            client = session.query(Client).filter_by(id=client_id).first()
+            if client:
+                send_feedback_dm(client.workspace_id, client_id)
+                logger.info(f"Manual feedback sent to client {client_id}")
+        except Exception as e:
+            logger.error(f"Error sending manual feedback: {e}")
+        finally:
+            session.close()
+
+        return redirect('/admin')
+
+    @flask_app.route("/api/clients", methods=["GET"])
+    def api_clients():
+        """API endpoint to get all clients"""
+        from src.database.session import get_session
+        from src.models.client import Client
+
+        session = get_session()
+        try:
+            clients = session.query(Client).filter_by(is_active=True).all()
+            return jsonify([{
+                'id': c.id,
+                'slack_user_id': c.slack_user_id,
+                'display_name': c.display_name,
+                'timezone': c.timezone,
+                'is_active': c.is_active,
+                'schedule_type': c.standup_config.schedule_type if c.standup_config else None,
+                'schedule_time': c.standup_config.schedule_time.strftime('%H:%M') if c.standup_config else None,
+                'is_paused': c.standup_config.is_paused if c.standup_config else None
+            } for c in clients])
+        finally:
+            session.close()
+
+    @flask_app.route("/api/jobs", methods=["GET"])
+    def api_jobs():
+        """API endpoint to get scheduled jobs"""
+        from src.services.scheduler_service import get_scheduled_jobs
+        jobs = get_scheduled_jobs()
+        return jsonify([{
+            'id': j['id'],
+            'name': j['name'],
+            'next_run': str(j['next_run']) if j['next_run'] else None,
+            'trigger': j['trigger']
+        } for j in jobs])
 
     logger.info("Flask app configured")
     return flask_app

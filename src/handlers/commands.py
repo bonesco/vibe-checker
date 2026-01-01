@@ -33,48 +33,42 @@ def register(app):
             logger.error(f"Error opening add client modal: {e}")
 
     @app.command("/vibe-list-clients")
-    def handle_list_clients(ack, command, client, body):
+    def handle_list_clients(ack, body, respond):
         """List all clients"""
         ack()
         try:
             workspace = get_workspace_by_team_id(body["team_id"])
             if not workspace:
-                client.chat_postEphemeral(
-                    channel=command["channel_id"],
-                    user=command["user_id"],
-                    text="Workspace not found"
-                )
+                respond(text="Workspace not found")
                 return
 
             clients = get_workspace_clients(workspace.id)
             blocks = get_client_list_blocks(clients)
 
-            client.chat_postEphemeral(
-                channel=command["channel_id"],
-                user=command["user_id"],
+            respond(
                 text=f"Found {len(clients)} clients",
                 blocks=blocks
             )
         except Exception as e:
             logger.error(f"Error listing clients: {e}")
+            respond(text="An error occurred. Please try again.")
 
     @app.command("/vibe-help")
-    def handle_help(ack, command, client):
+    def handle_help(ack, respond):
         """Show help documentation"""
         ack()
         try:
             blocks = get_help_blocks()
-            client.chat_postEphemeral(
-                channel=command["channel_id"],
-                user=command["user_id"],
+            respond(
                 text="Vibe Check Help",
                 blocks=blocks
             )
         except Exception as e:
             logger.error(f"Error showing help: {e}")
+            respond(text="An error occurred. Please try again.")
 
     @app.command("/vibe-test")
-    def handle_test(ack, command, client, body):
+    def handle_test(ack, command, client, respond):
         """Send a test standup to the admin (uses client_id=-1 for test mode)"""
         ack()
         try:
@@ -91,16 +85,13 @@ def register(app):
                 blocks=blocks
             )
 
-            client.chat_postEphemeral(
-                channel=command["channel_id"],
-                user=command["user_id"],
-                text="✅ Test standup sent to your DMs! (This is a test - responses won't be saved)"
-            )
+            respond(text="✅ Test standup sent to your DMs! (This is a test - responses won't be saved)")
         except Exception as e:
             logger.error(f"Error sending test: {e}")
+            respond(text="An error occurred. Please try again.")
 
     @app.command("/vibe-test-feedback")
-    def handle_test_feedback(ack, command, client, body):
+    def handle_test_feedback(ack, command, client, respond):
         """Send a test feedback form to the admin (uses client_id=-1 for test mode)"""
         ack()
         try:
@@ -117,26 +108,19 @@ def register(app):
                 blocks=blocks
             )
 
-            client.chat_postEphemeral(
-                channel=command["channel_id"],
-                user=command["user_id"],
-                text="✅ Test feedback form sent to your DMs! (This is a test - responses won't be saved)"
-            )
+            respond(text="✅ Test feedback form sent to your DMs! (This is a test - responses won't be saved)")
         except Exception as e:
             logger.error(f"Error sending test feedback: {e}")
+            respond(text="An error occurred. Please try again.")
 
     @app.command("/vibe-pause")
-    def handle_pause_client(ack, command, client, body):
+    def handle_pause_client(ack, command, client, body, respond):
         """Open modal to pause a client's standups"""
         ack()
         try:
             workspace = get_workspace_by_team_id(body["team_id"])
             if not workspace:
-                client.chat_postEphemeral(
-                    channel=command["channel_id"],
-                    user=command["user_id"],
-                    text="Workspace not found. Please reinstall the app."
-                )
+                respond(text="Workspace not found. Please reinstall the app.")
                 return
 
             clients = get_workspace_clients(workspace.id)
@@ -148,27 +132,22 @@ def register(app):
                     view=modal
                 )
             else:
-                client.chat_postEphemeral(
-                    channel=command["channel_id"],
-                    user=command["user_id"],
+                respond(
                     text="No active clients to pause.",
                     blocks=get_no_clients_message("pause")
                 )
         except Exception as e:
             logger.error(f"Error opening pause modal: {e}")
+            respond(text="An error occurred. Please try again.")
 
     @app.command("/vibe-resume")
-    def handle_resume_client(ack, command, client, body):
+    def handle_resume_client(ack, command, client, body, respond):
         """Open modal to resume a client's standups"""
         ack()
         try:
             workspace = get_workspace_by_team_id(body["team_id"])
             if not workspace:
-                client.chat_postEphemeral(
-                    channel=command["channel_id"],
-                    user=command["user_id"],
-                    text="Workspace not found. Please reinstall the app."
-                )
+                respond(text="Workspace not found. Please reinstall the app.")
                 return
 
             clients = get_workspace_clients(workspace.id)
@@ -180,27 +159,22 @@ def register(app):
                     view=modal
                 )
             else:
-                client.chat_postEphemeral(
-                    channel=command["channel_id"],
-                    user=command["user_id"],
+                respond(
                     text="No paused clients to resume.",
                     blocks=get_no_clients_message("resume")
                 )
         except Exception as e:
             logger.error(f"Error opening resume modal: {e}")
+            respond(text="An error occurred. Please try again.")
 
     @app.command("/vibe-remove-client")
-    def handle_remove_client(ack, command, client, body):
+    def handle_remove_client(ack, command, client, body, respond):
         """Open modal to remove a client"""
         ack()
         try:
             workspace = get_workspace_by_team_id(body["team_id"])
             if not workspace:
-                client.chat_postEphemeral(
-                    channel=command["channel_id"],
-                    user=command["user_id"],
-                    text="Workspace not found. Please reinstall the app."
-                )
+                respond(text="Workspace not found. Please reinstall the app.")
                 return
 
             clients = get_workspace_clients(workspace.id)
@@ -212,17 +186,16 @@ def register(app):
                     view=modal
                 )
             else:
-                client.chat_postEphemeral(
-                    channel=command["channel_id"],
-                    user=command["user_id"],
+                respond(
                     text="No clients to remove.",
                     blocks=get_no_clients_message("remove")
                 )
         except Exception as e:
             logger.error(f"Error opening remove modal: {e}")
+            respond(text="An error occurred. Please try again.")
 
     @app.command("/vibe-set-channel")
-    def handle_set_channel(ack, command, client):
+    def handle_set_channel(ack, command, client, respond):
         """Open modal to set the vibe check channel"""
         ack()
         try:
@@ -233,5 +206,6 @@ def register(app):
             )
         except Exception as e:
             logger.error(f"Error opening set channel modal: {e}")
+            respond(text="An error occurred. Please try again.")
 
     logger.info("Command handlers registered")

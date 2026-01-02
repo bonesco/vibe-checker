@@ -310,7 +310,7 @@ DASHBOARD_HTML = """
                 <p>Responses Today</p>
             </div>
             <div class="stat-card">
-                <div class="emoji">{{ '😄' if stats.avg_feeling >= 4 else '🙂' if stats.avg_feeling >= 3 else '😐' if stats.avg_feeling >= 2 else '📊' }}</div>
+                <div class="emoji">{% if stats.avg_feeling %}{{ '😄' if stats.avg_feeling >= 4 else '🙂' if stats.avg_feeling >= 3 else '😐' if stats.avg_feeling >= 2 else '😕' }}{% else %}📊{% endif %}</div>
                 <h3>{{ '%.1f' | format(stats.avg_feeling) if stats.avg_feeling else '-' }}</h3>
                 <p>Avg Feeling (7d)</p>
             </div>

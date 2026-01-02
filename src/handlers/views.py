@@ -64,8 +64,17 @@ def register(app):
 
             # Get user info from Slack
             user_info = client.users_info(user=user_id)
-            display_name = user_info["user"]["real_name"]
-            email = user_info["user"]["profile"].get("email")
+            user_data = user_info.get("user", {})
+            profile = user_data.get("profile", {})
+            # Try multiple fields for display name
+            display_name = (
+                profile.get("real_name") or
+                profile.get("display_name") or
+                user_data.get("real_name") or
+                user_data.get("name") or
+                user_id
+            )
+            email = profile.get("email")
 
             # Add client
             new_client = add_client(

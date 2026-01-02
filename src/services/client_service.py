@@ -75,7 +75,12 @@ def add_client(
             session.flush()
             add_feedback_job(feedback_config)
 
-        logger.info(f"Added client: {slack_user_id} (ID: {client.id})")
+        # Capture ID before session closes
+        client_id = client.id
+        logger.info(f"Added client: {slack_user_id} (ID: {client_id})")
+
+        # Expunge client from session so it can be accessed after commit
+        session.expunge(client)
         return client
 
 

@@ -87,7 +87,7 @@ def get_add_client_modal() -> Dict[str, Any]:
                             "value": "monday_only",
                             "text": {
                                 "type": "plain_text",
-                                "text": "Monday Only - Send standup request on Mondays"
+                                "text": "Weekly - Send standup request on Mondays only"
                             }
                         }
                     ]
@@ -154,7 +154,7 @@ def get_client_list_blocks(clients: List[Client]) -> List[Dict[str, Any]]:
         standup_info = "No standup configured"
 
         if client.standup_config:
-            schedule_type = "Daily" if client.standup_config.schedule_type == "daily" else "Mondays"
+            schedule_type = "Daily" if client.standup_config.schedule_type == "daily" else "Weekly (Mon)"
             paused = " (Paused)" if client.standup_config.is_paused else ""
             standup_info = f"{schedule_type} at {client.standup_config.schedule_time.strftime('%I:%M %p')}{paused}"
 
@@ -225,8 +225,8 @@ def get_help_blocks() -> List[Dict[str, Any]]:
                 "type": "mrkdwn",
                 "text": "*How it works:*\n"
                        "• Daily standups are sent via DM at the configured time\n"
-                       "• Weekly feedback is sent every Friday\n"
-                       "• All feedback is posted to your private vibe check channel\n"
+                       "• Friday Vibe Check (weekly retrospective) is sent every Friday\n"
+                       "• All responses are posted to your private vibe check channel\n"
                        "• Clients can submit responses using the interactive buttons"
             }
         }

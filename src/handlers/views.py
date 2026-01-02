@@ -27,8 +27,24 @@ def register(app):
 
             user_id = values["user_select"]["user_input"]["selected_user"]
             timezone = values["timezone"]["timezone_select"]["selected_option"]["value"]
-            schedule_type = values["schedule_type"]["schedule_type_select"]["selected_option"]["value"]
             time_str = values["standup_time"]["time_select"]["selected_time"]
+
+            # Parse checkbox selections
+            selected_options = values["check_in_options"]["check_in_options_select"]["selected_options"]
+            selected_values = [opt["value"] for opt in selected_options]
+
+            # Determine schedule type and flags
+            enable_daily_standup = "daily_standup" in selected_values
+            enable_weekly_standup = "weekly_standup" in selected_values
+            enable_friday_vibe_check = "friday_vibe_check" in selected_values
+
+            # Determine standup schedule type (daily takes precedence if both selected)
+            if enable_daily_standup:
+                schedule_type = "daily"
+            elif enable_weekly_standup:
+                schedule_type = "monday_only"
+            else:
+                schedule_type = None  # No standup
 
             # Parse time
             hour, minute = map(int, time_str.split(":"))
@@ -50,14 +66,26 @@ def register(app):
                 email=email,
                 timezone=timezone,
                 schedule_type=schedule_type,
-                schedule_time=schedule_time
+                schedule_time=schedule_time,
+                enable_feedback=enable_friday_vibe_check
             )
+
+            # Build confirmation message
+            enabled_features = []
+            if schedule_type == "daily":
+                enabled_features.append(f"Daily standup at {schedule_time.strftime('%I:%M %p')}")
+            elif schedule_type == "monday_only":
+                enabled_features.append(f"Weekly standup (Mondays) at {schedule_time.strftime('%I:%M %p')}")
+            if enable_friday_vibe_check:
+                enabled_features.append("Friday Vibe Check")
+
+            features_text = "\n".join([f"• {f}" for f in enabled_features]) if enabled_features else "• No check-ins enabled"
 
             # Send confirmation
             client.chat_postMessage(
                 channel=body["user"]["id"],
                 text=f"✅ Successfully added <@{user_id}> as a client!\n"
-                     f"• Schedule: {schedule_type} at {schedule_time.strftime('%I:%M %p')}\n"
+                     f"{features_text}\n"
                      f"• Timezone: {timezone}"
             )
 

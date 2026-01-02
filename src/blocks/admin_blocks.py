@@ -71,30 +71,77 @@ def get_add_client_modal() -> Dict[str, Any]:
             },
             {
                 "type": "input",
-                "block_id": "schedule_type",
+                "block_id": "check_in_options",
                 "element": {
-                    "type": "radio_buttons",
-                    "action_id": "schedule_type_select",
-                    "options": [
+                    "type": "checkboxes",
+                    "action_id": "check_in_options_select",
+                    "initial_options": [
                         {
-                            "value": "daily",
+                            "value": "daily_standup",
                             "text": {
                                 "type": "plain_text",
-                                "text": "Daily - Send standup request every day"
+                                "text": "Daily Standup"
+                            },
+                            "description": {
+                                "type": "plain_text",
+                                "text": "Daily check-in: accomplishments, priorities, blockers"
                             }
                         },
                         {
-                            "value": "monday_only",
+                            "value": "friday_vibe_check",
                             "text": {
                                 "type": "plain_text",
-                                "text": "Weekly - Send standup request on Mondays only"
+                                "text": "Friday Vibe Check"
+                            },
+                            "description": {
+                                "type": "plain_text",
+                                "text": "Weekly retrospective: what worked, what didn't, improvements"
+                            }
+                        }
+                    ],
+                    "options": [
+                        {
+                            "value": "daily_standup",
+                            "text": {
+                                "type": "plain_text",
+                                "text": "Daily Standup"
+                            },
+                            "description": {
+                                "type": "plain_text",
+                                "text": "Daily check-in: accomplishments, priorities, blockers"
+                            }
+                        },
+                        {
+                            "value": "weekly_standup",
+                            "text": {
+                                "type": "plain_text",
+                                "text": "Weekly Standup (Mondays)"
+                            },
+                            "description": {
+                                "type": "plain_text",
+                                "text": "Monday-only check-in instead of daily"
+                            }
+                        },
+                        {
+                            "value": "friday_vibe_check",
+                            "text": {
+                                "type": "plain_text",
+                                "text": "Friday Vibe Check"
+                            },
+                            "description": {
+                                "type": "plain_text",
+                                "text": "Weekly retrospective: what worked, what didn't, improvements"
                             }
                         }
                     ]
                 },
                 "label": {
                     "type": "plain_text",
-                    "text": "Standup Schedule"
+                    "text": "Check-in Types"
+                },
+                "hint": {
+                    "type": "plain_text",
+                    "text": "Select one standup option (Daily OR Weekly) plus optional Friday Vibe Check"
                 }
             },
             {
@@ -151,14 +198,21 @@ def get_client_list_blocks(clients: List[Client]) -> List[Dict[str, Any]]:
 
     for client in clients:
         status_emoji = "✅" if client.is_active else "⏸️"
-        standup_info = "No standup configured"
 
+        # Standup info
         if client.standup_config:
             schedule_type = "Daily" if client.standup_config.schedule_type == "daily" else "Weekly (Mon)"
             paused = " (Paused)" if client.standup_config.is_paused else ""
-            standup_info = f"{schedule_type} at {client.standup_config.schedule_time.strftime('%I:%M %p')}{paused}"
+            standup_info = f"✅ {schedule_type} at {client.standup_config.schedule_time.strftime('%I:%M %p')}{paused}"
+        else:
+            standup_info = "❌ Disabled"
 
-        feedback_info = "✅ Enabled" if (client.feedback_config and client.feedback_config.is_enabled) else "❌ Disabled"
+        # Friday vibe check info
+        if client.feedback_config and client.feedback_config.is_enabled:
+            vibe_time = client.feedback_config.schedule_time.strftime('%I:%M %p') if client.feedback_config.schedule_time else "3:00 PM"
+            vibe_info = f"✅ Fridays at {vibe_time}"
+        else:
+            vibe_info = "❌ Disabled"
 
         blocks.append({
             "type": "section",
@@ -167,7 +221,7 @@ def get_client_list_blocks(clients: List[Client]) -> List[Dict[str, Any]]:
                 "text": (
                     f"{status_emoji} *<@{client.slack_user_id}>*\n"
                     f"• Standup: {standup_info}\n"
-                    f"• Feedback: {feedback_info}\n"
+                    f"• Friday Vibe Check: {vibe_info}\n"
                     f"• Timezone: {client.timezone}"
                 )
             }

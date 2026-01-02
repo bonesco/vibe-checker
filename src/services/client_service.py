@@ -19,11 +19,12 @@ def add_client(
     display_name: str,
     email: Optional[str],
     timezone: str,
-    schedule_type: str,
-    schedule_time: dt_time
+    schedule_type: Optional[str],
+    schedule_time: dt_time,
+    enable_feedback: bool = True
 ) -> Client:
     """
-    Add a new client with default configurations
+    Add a new client with configurations
 
     Args:
         workspace_id: Workspace database ID
@@ -31,8 +32,9 @@ def add_client(
         display_name: User's display name
         email: User's email
         timezone: Client timezone
-        schedule_type: 'daily' or 'monday_only'
+        schedule_type: 'daily', 'monday_only', or None (no standup)
         schedule_time: Time to send standups
+        enable_feedback: Whether to enable Friday vibe check
 
     Returns:
         Created Client instance
@@ -50,28 +52,28 @@ def add_client(
         session.add(client)
         session.flush()  # Get client ID
 
-        # Create standup config
-        standup_config = StandupConfig(
-            client_id=client.id,
-            schedule_type=schedule_type,
-            schedule_time=schedule_time,
-            is_paused=False
-        )
-        session.add(standup_config)
+        # Create standup config only if schedule_type is specified
+        if schedule_type:
+            standup_config = StandupConfig(
+                client_id=client.id,
+                schedule_type=schedule_type,
+                schedule_time=schedule_time,
+                is_paused=False
+            )
+            session.add(standup_config)
+            session.flush()
+            add_standup_job(standup_config)
 
-        # Create feedback config (enabled by default)
-        feedback_config = FeedbackConfig(
-            client_id=client.id,
-            schedule_time=dt_time(15, 0),  # 3 PM default
-            is_enabled=True
-        )
-        session.add(feedback_config)
-
-        session.flush()
-
-        # Schedule jobs
-        add_standup_job(standup_config)
-        add_feedback_job(feedback_config)
+        # Create feedback config if enabled
+        if enable_feedback:
+            feedback_config = FeedbackConfig(
+                client_id=client.id,
+                schedule_time=dt_time(15, 0),  # 3 PM default
+                is_enabled=True
+            )
+            session.add(feedback_config)
+            session.flush()
+            add_feedback_job(feedback_config)
 
         logger.info(f"Added client: {slack_user_id} (ID: {client.id})")
         return client

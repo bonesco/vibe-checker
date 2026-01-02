@@ -29,14 +29,23 @@ def register(app):
             timezone = values["timezone"]["timezone_select"]["selected_option"]["value"]
             time_str = values["standup_time"]["time_select"]["selected_time"]
 
-            # Parse checkbox selections
-            selected_options = values["check_in_options"]["check_in_options_select"]["selected_options"]
+            # Parse checkbox selections (handle empty/missing case)
+            check_in_data = values.get("check_in_options", {}).get("check_in_options_select", {})
+            selected_options = check_in_data.get("selected_options") or []
             selected_values = [opt["value"] for opt in selected_options]
 
             # Determine schedule type and flags
             enable_daily_standup = "daily_standup" in selected_values
             enable_weekly_standup = "weekly_standup" in selected_values
             enable_friday_vibe_check = "friday_vibe_check" in selected_values
+
+            # Validate at least one option selected
+            if not selected_values:
+                client.chat_postMessage(
+                    channel=body["user"]["id"],
+                    text="⚠️ Please select at least one check-in option (Daily Standup, Weekly Standup, or Friday Vibe Check)."
+                )
+                return
 
             # Determine standup schedule type (daily takes precedence if both selected)
             if enable_daily_standup:
@@ -77,9 +86,9 @@ def register(app):
             elif schedule_type == "monday_only":
                 enabled_features.append(f"Weekly standup (Mondays) at {schedule_time.strftime('%I:%M %p')}")
             if enable_friday_vibe_check:
-                enabled_features.append("Friday Vibe Check")
+                enabled_features.append("Friday Vibe Check (Fridays at 3:00 PM)")
 
-            features_text = "\n".join([f"• {f}" for f in enabled_features]) if enabled_features else "• No check-ins enabled"
+            features_text = "\n".join([f"• {f}" for f in enabled_features])
 
             # Send confirmation
             client.chat_postMessage(
@@ -92,7 +101,15 @@ def register(app):
             logger.info(f"Added new client via modal: {user_id} (ID: {new_client.id})")
 
         except Exception as e:
-            logger.error(f"Error handling add client submission: {e}")
+            logger.error(f"Error handling add client submission: {e}", exc_info=True)
+            # Notify user of the error
+            try:
+                client.chat_postMessage(
+                    channel=body["user"]["id"],
+                    text=f"❌ Failed to add client: {str(e)}\nPlease try again or contact support."
+                )
+            except Exception:
+                pass  # If we can't even notify, just log
 
     @app.view("pause_client_modal")
     def handle_pause_client_submission(ack, body, client, view):

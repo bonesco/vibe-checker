@@ -102,228 +102,381 @@ DASHBOARD_HTML = """
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #f5f5f5;
-            color: #333;
-            line-height: 1.6;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            background: #fafafa;
+            color: #111;
+            line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
         }
-        .container { max-width: 1400px; margin: 0 auto; padding: 20px; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 24px; }
+
+        /* Header - Clean white */
         header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 30px 20px;
-            margin-bottom: 30px;
+            background: #fff;
+            border-bottom: 1px solid #eaeaea;
+            padding: 20px 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
         }
-        .header-content { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
-        header h1 { font-size: 2em; margin-bottom: 5px; }
-        header p { opacity: 0.9; }
-        .header-actions { display: flex; gap: 10px; align-items: center; }
-        .auto-refresh { display: flex; align-items: center; gap: 5px; font-size: 0.9em; }
-        .auto-refresh input { cursor: pointer; }
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+        .header-left { display: flex; align-items: center; gap: 12px; }
+        .logo {
+            width: 32px;
+            height: 32px;
+            background: #000;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 16px;
+        }
+        header h1 { font-size: 16px; font-weight: 600; letter-spacing: -0.02em; }
+        .header-actions { display: flex; gap: 12px; align-items: center; }
+        .auto-refresh {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+            color: #666;
+        }
+        .auto-refresh input {
+            cursor: pointer;
+            accent-color: #000;
+        }
+
+        /* Stats Grid */
         .stats {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-            gap: 15px;
-            margin-bottom: 30px;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 16px;
+            margin-bottom: 32px;
         }
         .stat-card {
-            background: white;
+            background: #fff;
             padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            text-align: center;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
+            transition: box-shadow 0.2s ease;
         }
-        .stat-card.highlight { border-left: 4px solid #667eea; }
-        .stat-card h3 { font-size: 2.2em; color: #667eea; margin-bottom: 5px; }
-        .stat-card p { color: #666; font-size: 0.85em; }
-        .stat-card .trend { font-size: 0.75em; margin-top: 5px; }
-        .stat-card .trend.up { color: #28a745; }
-        .stat-card .trend.down { color: #dc3545; }
-        .stat-card .emoji { font-size: 1.5em; margin-bottom: 10px; }
-        .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 20px; }
+        .stat-card:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1), 0 2px 4px rgba(0,0,0,0.04);
+        }
+        .stat-card .label {
+            font-size: 12px;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 8px;
+        }
+        .stat-card .value {
+            font-size: 28px;
+            font-weight: 600;
+            color: #111;
+            letter-spacing: -0.02em;
+        }
+        .stat-card .subtext {
+            font-size: 12px;
+            color: #888;
+            margin-top: 4px;
+        }
+
+        /* Cards */
+        .grid-2 {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 24px;
+        }
         .card {
-            background: white;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            margin-bottom: 20px;
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
+            margin-bottom: 24px;
             overflow: hidden;
         }
         .card-header {
-            background: #f8f9fa;
-            padding: 15px 20px;
-            border-bottom: 1px solid #eee;
+            padding: 16px 20px;
+            border-bottom: 1px solid #eaeaea;
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
-        .card-header h2 { font-size: 1.1em; display: flex; align-items: center; gap: 8px; }
+        .card-header h2 {
+            font-size: 14px;
+            font-weight: 600;
+            color: #111;
+            letter-spacing: -0.01em;
+        }
         .card-body { padding: 20px; }
         .card-body.compact { padding: 0; }
+
+        /* Table */
         table { width: 100%; border-collapse: collapse; }
-        th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #eee; }
-        th { background: #f8f9fa; font-weight: 600; font-size: 0.85em; text-transform: uppercase; color: #666; }
-        tr:hover { background: #f8f9fa; }
+        th, td {
+            padding: 14px 20px;
+            text-align: left;
+            border-bottom: 1px solid #eaeaea;
+        }
+        th {
+            font-weight: 500;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #666;
+            background: #fafafa;
+        }
+        tr:last-child td { border-bottom: none; }
+        tr:hover { background: #fafafa; }
+
+        /* Badges */
         .badge {
-            display: inline-block;
-            padding: 3px 8px;
-            border-radius: 12px;
-            font-size: 0.75em;
+            display: inline-flex;
+            align-items: center;
+            padding: 4px 10px;
+            border-radius: 100px;
+            font-size: 12px;
             font-weight: 500;
         }
-        .badge-success { background: #d4edda; color: #155724; }
-        .badge-warning { background: #fff3cd; color: #856404; }
-        .badge-info { background: #d1ecf1; color: #0c5460; }
-        .badge-danger { background: #f8d7da; color: #721c24; }
-        .badge-secondary { background: #e9ecef; color: #495057; }
-        .badge-purple { background: #e8daef; color: #6c3483; }
+        .badge-success { background: #e8f5e9; color: #2e7d32; }
+        .badge-warning { background: #fff8e1; color: #f57c00; }
+        .badge-info { background: #e3f2fd; color: #1565c0; }
+        .badge-danger { background: #ffebee; color: #c62828; }
+        .badge-secondary { background: #f5f5f5; color: #616161; }
+        .badge-purple { background: #f3e5f5; color: #7b1fa2; }
+
+        /* Buttons */
         .btn {
-            display: inline-block;
-            padding: 6px 12px;
-            border: none;
-            border-radius: 5px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 8px 16px;
+            border: 1px solid #eaeaea;
+            border-radius: 8px;
+            background: #fff;
             cursor: pointer;
-            font-size: 0.8em;
+            font-size: 13px;
+            font-weight: 500;
+            color: #111;
             text-decoration: none;
-            transition: all 0.2s;
+            transition: all 0.15s ease;
         }
-        .btn:hover { opacity: 0.85; transform: translateY(-1px); }
-        .btn-primary { background: #667eea; color: white; }
-        .btn-success { background: #28a745; color: white; }
-        .btn-warning { background: #ffc107; color: #333; }
-        .btn-info { background: #17a2b8; color: white; }
-        .btn-outline { background: transparent; border: 1px solid #ddd; color: #666; }
-        .btn-outline:hover { background: #f8f9fa; }
-        .btn-sm { padding: 4px 8px; font-size: 0.75em; }
-        .actions { display: flex; gap: 5px; flex-wrap: wrap; }
-        .empty-state { text-align: center; padding: 40px; color: #666; }
-        .refresh-note { text-align: center; color: #666; font-size: 0.85em; margin-top: 20px; }
+        .btn:hover {
+            background: #fafafa;
+            border-color: #ddd;
+        }
+        .btn-primary {
+            background: #000;
+            color: #fff;
+            border-color: #000;
+        }
+        .btn-primary:hover {
+            background: #333;
+            border-color: #333;
+        }
+        .btn-sm { padding: 6px 10px; font-size: 12px; border-radius: 6px; }
+        .actions { display: flex; gap: 6px; }
+
+        /* Client Avatar */
         .client-avatar {
             width: 36px;
             height: 36px;
             border-radius: 50%;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
+            background: #111;
+            color: #fff;
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            font-weight: 600;
-            font-size: 0.9em;
-            margin-right: 10px;
+            font-weight: 500;
+            font-size: 14px;
+            margin-right: 12px;
         }
         .client-info { display: flex; align-items: center; }
         .client-details { display: flex; flex-direction: column; }
-        .client-name { font-weight: 600; }
-        .client-meta { font-size: 0.8em; color: #666; }
+        .client-name { font-weight: 500; font-size: 14px; }
+        .client-meta { font-size: 12px; color: #666; }
+
+        /* Schedule Info */
         .schedule-info { display: flex; flex-direction: column; gap: 4px; }
-        .schedule-item { display: flex; align-items: center; gap: 5px; font-size: 0.85em; }
-        .schedule-item .icon { width: 16px; text-align: center; }
-        .response-preview {
-            background: #f8f9fa;
-            border-radius: 8px;
-            padding: 12px;
-            margin: 10px 0;
-            font-size: 0.9em;
+        .schedule-item {
+            font-size: 13px;
+            color: #444;
+            display: flex;
+            align-items: center;
+            gap: 6px;
         }
-        .response-preview .label { font-weight: 600; color: #666; font-size: 0.8em; margin-bottom: 4px; }
-        .response-preview .content { color: #333; }
-        .rating-display { display: flex; align-items: center; gap: 3px; }
-        .tab-container { display: flex; gap: 5px; }
+        .schedule-item .icon {
+            font-size: 12px;
+            opacity: 0.7;
+        }
+
+        /* Tabs */
+        .tab-container { display: flex; gap: 4px; }
         .tab {
-            padding: 8px 16px;
+            padding: 6px 12px;
             border: none;
             background: transparent;
             cursor: pointer;
-            border-bottom: 2px solid transparent;
-            font-size: 0.9em;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 500;
+            color: #666;
+            transition: all 0.15s ease;
+        }
+        .tab:hover { background: #f5f5f5; color: #111; }
+        .tab.active { background: #111; color: #fff; }
+
+        /* Response Preview */
+        .response-preview {
+            background: #fafafa;
+            border: 1px solid #eaeaea;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 12px;
+        }
+        .response-preview:last-child { margin-bottom: 0; }
+        .response-preview .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        .response-preview .client-name { font-weight: 500; font-size: 14px; }
+        .response-preview .label {
+            font-size: 11px;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #888;
+            margin-bottom: 4px;
+            margin-top: 12px;
+        }
+        .response-preview .label:first-of-type { margin-top: 0; }
+        .response-preview .content {
+            color: #444;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        /* Rating Display */
+        .rating-display {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 13px;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 48px 24px;
             color: #666;
         }
-        .tab:hover { color: #333; }
-        .tab.active { color: #667eea; border-bottom-color: #667eea; font-weight: 500; }
-        .tab-content { display: none; }
-        .tab-content.active { display: block; }
-        .tooltip {
-            position: relative;
-            cursor: help;
+        .empty-state p { font-size: 14px; }
+        .empty-state code {
+            background: #f5f5f5;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 13px;
         }
+
+        /* Footer */
+        .footer-note {
+            text-align: center;
+            color: #888;
+            font-size: 12px;
+            margin-top: 32px;
+            padding-bottom: 24px;
+        }
+
+        /* Tooltip */
+        .tooltip { position: relative; cursor: default; }
         .tooltip:hover::after {
             content: attr(data-tooltip);
             position: absolute;
-            bottom: 100%;
+            bottom: calc(100% + 4px);
             left: 50%;
             transform: translateX(-50%);
-            background: #333;
-            color: white;
-            padding: 5px 10px;
-            border-radius: 4px;
-            font-size: 0.75em;
+            background: #111;
+            color: #fff;
+            padding: 6px 10px;
+            border-radius: 6px;
+            font-size: 12px;
             white-space: nowrap;
             z-index: 100;
         }
-        @media (max-width: 768px) {
-            .stats { grid-template-columns: 1fr 1fr; }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .stats { grid-template-columns: repeat(3, 1fr); }
             .grid-2 { grid-template-columns: 1fr; }
-            table { font-size: 0.85em; }
-            th, td { padding: 8px; }
-            .header-content { flex-direction: column; align-items: flex-start; }
+        }
+        @media (max-width: 768px) {
+            .stats { grid-template-columns: repeat(2, 1fr); }
+            .header-content { flex-direction: column; gap: 12px; align-items: flex-start; }
+            th, td { padding: 10px 14px; }
+            .container { padding: 16px; }
         }
     </style>
 </head>
 <body>
     <header>
-        <div class="container">
-            <div class="header-content">
-                <div>
-                    <h1>🎭 Vibe Check Dashboard</h1>
-                    <p>Manage your client check-ins and view responses</p>
-                </div>
-                <div class="header-actions">
-                    <label class="auto-refresh">
-                        <input type="checkbox" id="autoRefresh" onchange="toggleAutoRefresh()">
-                        Auto-refresh (30s)
-                    </label>
-                    <a href="/admin/refresh?key={{ request.args.get('key', '') }}" class="btn btn-outline" style="color:white;border-color:rgba(255,255,255,0.5)">↻ Refresh</a>
-                </div>
+        <div class="header-content">
+            <div class="header-left">
+                <div class="logo">V</div>
+                <h1>Vibe Check</h1>
+            </div>
+            <div class="header-actions">
+                <label class="auto-refresh">
+                    <input type="checkbox" id="autoRefresh" onchange="toggleAutoRefresh()">
+                    Auto-refresh
+                </label>
+                <a href="/admin/refresh?key={{ request.args.get('key', '') }}" class="btn">Refresh</a>
             </div>
         </div>
     </header>
 
     <div class="container">
         <div class="stats">
-            <div class="stat-card highlight">
-                <div class="emoji">👥</div>
-                <h3>{{ stats.total_clients }}</h3>
-                <p>Total Clients</p>
+            <div class="stat-card">
+                <div class="label">Clients</div>
+                <div class="value">{{ stats.total_clients }}</div>
             </div>
             <div class="stat-card">
-                <div class="emoji">✅</div>
-                <h3>{{ stats.active_clients }}</h3>
-                <p>Active (Not Paused)</p>
+                <div class="label">Active</div>
+                <div class="value">{{ stats.active_clients }}</div>
             </div>
             <div class="stat-card">
-                <div class="emoji">📅</div>
-                <h3>{{ stats.scheduled_jobs }}</h3>
-                <p>Scheduled Jobs</p>
+                <div class="label">Scheduled</div>
+                <div class="value">{{ stats.scheduled_jobs }}</div>
             </div>
             <div class="stat-card">
-                <div class="emoji">📝</div>
-                <h3>{{ stats.responses_today }}</h3>
-                <p>Responses Today</p>
+                <div class="label">Today</div>
+                <div class="value">{{ stats.responses_today }}</div>
+                <div class="subtext">responses</div>
             </div>
             <div class="stat-card">
-                <div class="emoji">{% if stats.avg_feeling %}{{ '😄' if stats.avg_feeling >= 4 else '🙂' if stats.avg_feeling >= 3 else '😐' if stats.avg_feeling >= 2 else '😕' }}{% else %}📊{% endif %}</div>
-                <h3>{{ '%.1f' | format(stats.avg_feeling) if stats.avg_feeling else '-' }}</h3>
-                <p>Avg Feeling (7d)</p>
+                <div class="label">Avg Feeling</div>
+                <div class="value">{{ '%.1f' | format(stats.avg_feeling) if stats.avg_feeling else '–' }}</div>
+                <div class="subtext">7-day avg</div>
             </div>
             <div class="stat-card">
-                <div class="emoji">⭐</div>
-                <h3>{{ '%.1f' | format(stats.avg_satisfaction) if stats.avg_satisfaction else '-' }}</h3>
-                <p>Avg Satisfaction (7d)</p>
+                <div class="label">Satisfaction</div>
+                <div class="value">{{ '%.1f' | format(stats.avg_satisfaction) if stats.avg_satisfaction else '–' }}</div>
+                <div class="subtext">7-day avg</div>
             </div>
         </div>
 
         <div class="card">
             <div class="card-header">
-                <h2>📋 Clients</h2>
+                <h2>Clients</h2>
                 <div class="tab-container">
                     <button class="tab active" onclick="showTab('all')">All ({{ clients|length }})</button>
                     <button class="tab" onclick="showTab('active')">Active</button>
@@ -358,13 +511,13 @@ DASHBOARD_HTML = """
                                 <div class="schedule-info">
                                     {% if client.standup_schedule %}
                                     <div class="schedule-item">
-                                        <span class="icon">📋</span>
+                                        <span class="icon">◉</span>
                                         <span>{{ client.standup_schedule }}</span>
                                     </div>
                                     {% endif %}
                                     {% if client.vibe_check_enabled %}
                                     <div class="schedule-item">
-                                        <span class="icon">🎭</span>
+                                        <span class="icon">◉</span>
                                         <span>Fridays at {{ client.vibe_check_time }}</span>
                                     </div>
                                     {% endif %}
@@ -377,24 +530,24 @@ DASHBOARD_HTML = """
                                 {% if client.next_run %}
                                     <span class="tooltip" data-tooltip="Next scheduled send">{{ client.next_run }}</span>
                                 {% else %}
-                                    <span style="color:#999">-</span>
+                                    <span style="color:#999">–</span>
                                 {% endif %}
                             </td>
                             <td>
                                 {% if client.is_paused %}
-                                    <span class="badge badge-warning">⏸ Paused</span>
+                                    <span class="badge badge-warning">Paused</span>
                                 {% elif client.is_active %}
-                                    <span class="badge badge-success">✓ Active</span>
+                                    <span class="badge badge-success">Active</span>
                                 {% else %}
                                     <span class="badge badge-danger">Inactive</span>
                                 {% endif %}
                             </td>
                             <td class="actions">
                                 {% if client.standup_schedule %}
-                                <a href="/admin/send/standup/{{ client.id }}?key={{ request.args.get('key', '') }}" class="btn btn-success btn-sm" onclick="return confirm('Send standup to {{ client.display_name }} now?')" title="Send Standup">📋</a>
+                                <a href="/admin/send/standup/{{ client.id }}?key={{ request.args.get('key', '') }}" class="btn btn-sm" onclick="return confirm('Send standup to {{ client.display_name }} now?')" title="Send Standup">Standup</a>
                                 {% endif %}
                                 {% if client.vibe_check_enabled %}
-                                <a href="/admin/send/feedback/{{ client.id }}?key={{ request.args.get('key', '') }}" class="btn btn-info btn-sm" onclick="return confirm('Send vibe check to {{ client.display_name }} now?')" title="Send Vibe Check">🎭</a>
+                                <a href="/admin/send/feedback/{{ client.id }}?key={{ request.args.get('key', '') }}" class="btn btn-sm" onclick="return confirm('Send vibe check to {{ client.display_name }} now?')" title="Send Vibe Check">Vibe</a>
                                 {% endif %}
                             </td>
                         </tr>
@@ -412,7 +565,7 @@ DASHBOARD_HTML = """
         <div class="grid-2">
             <div class="card">
                 <div class="card-header">
-                    <h2>📊 Recent Responses</h2>
+                    <h2>Recent Responses</h2>
                 </div>
                 <div class="card-body compact">
                     {% if responses %}
@@ -428,7 +581,7 @@ DASHBOARD_HTML = """
                         <tbody>
                             {% for response in responses %}
                             <tr>
-                                <td>{{ response.client_name }}</td>
+                                <td style="font-weight:500">{{ response.client_name }}</td>
                                 <td>
                                     <span class="badge badge-{{ 'info' if response.type == 'standup' else 'purple' }}">
                                         {{ 'Standup' if response.type == 'standup' else 'Vibe Check' }}
@@ -440,7 +593,7 @@ DASHBOARD_HTML = """
                                         {{ response.rating_emoji }} {{ response.rating }}/5
                                     </span>
                                     {% else %}
-                                    <span style="color:#999">-</span>
+                                    <span style="color:#999">–</span>
                                     {% endif %}
                                 </td>
                                 <td>
@@ -460,7 +613,7 @@ DASHBOARD_HTML = """
 
             <div class="card">
                 <div class="card-header">
-                    <h2>⏰ Scheduled Jobs</h2>
+                    <h2>Scheduled Jobs</h2>
                 </div>
                 <div class="card-body compact">
                     {% if jobs %}
@@ -477,13 +630,13 @@ DASHBOARD_HTML = """
                             <tr>
                                 <td>
                                     {% if 'standup' in job.id %}
-                                        <span class="badge badge-info">📋 Standup</span>
+                                        <span class="badge badge-info">Standup</span>
                                     {% else %}
-                                        <span class="badge badge-purple">🎭 Vibe Check</span>
+                                        <span class="badge badge-purple">Vibe Check</span>
                                     {% endif %}
                                 </td>
                                 <td>{{ job.next_run_formatted or 'Not scheduled' }}</td>
-                                <td><small style="color:#666">{{ job.trigger }}</small></td>
+                                <td><span style="color:#666;font-size:12px">{{ job.trigger }}</span></td>
                             </tr>
                             {% endfor %}
                         </tbody>
@@ -500,33 +653,33 @@ DASHBOARD_HTML = """
         {% if latest_responses %}
         <div class="card">
             <div class="card-header">
-                <h2>💬 Latest Response Details</h2>
+                <h2>Latest Responses</h2>
             </div>
             <div class="card-body">
                 {% for resp in latest_responses[:3] %}
                 <div class="response-preview">
-                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-                        <strong>{{ resp.client_name }}</strong>
+                    <div class="header">
+                        <span class="client-name">{{ resp.client_name }}</span>
                         <span class="badge badge-{{ 'info' if resp.type == 'standup' else 'purple' }}">
-                            {{ 'Standup' if resp.type == 'standup' else 'Vibe Check' }} - {{ resp.date }}
+                            {{ 'Standup' if resp.type == 'standup' else 'Vibe Check' }} · {{ resp.date }}
                         </span>
                     </div>
                     {% if resp.type == 'standup' %}
                         {% if resp.accomplishments %}
-                        <div class="label">✅ Accomplishments</div>
+                        <div class="label">Accomplishments</div>
                         <div class="content">{{ resp.accomplishments }}</div>
                         {% endif %}
                         {% if resp.working_on %}
-                        <div class="label" style="margin-top:8px">🎯 Today's Focus</div>
+                        <div class="label">Today's Focus</div>
                         <div class="content">{{ resp.working_on }}</div>
                         {% endif %}
                     {% else %}
                         {% if resp.feeling_text %}
-                        <div class="label">🏆 What went well</div>
+                        <div class="label">What went well</div>
                         <div class="content">{{ resp.feeling_text }}</div>
                         {% endif %}
                         {% if resp.improvements %}
-                        <div class="label" style="margin-top:8px">💡 Improvements</div>
+                        <div class="label">Improvements</div>
                         <div class="content">{{ resp.improvements }}</div>
                         {% endif %}
                     {% endif %}
@@ -536,7 +689,7 @@ DASHBOARD_HTML = """
         </div>
         {% endif %}
 
-        <p class="refresh-note">
+        <p class="footer-note">
             Last updated: <span id="lastUpdate">{{ now }}</span>
             <span id="countdown"></span>
         </p>
@@ -566,7 +719,7 @@ DASHBOARD_HTML = """
                 if (remaining <= 0) {
                     clearInterval(countdownInterval);
                 } else {
-                    el.textContent = ` (refreshing in ${remaining}s)`;
+                    el.textContent = ` · refreshing in ${remaining}s`;
                 }
             }, 1000);
         }

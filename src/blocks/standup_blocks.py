@@ -30,7 +30,7 @@ def get_standup_message_blocks(client_id: int, scheduled_date: date) -> List[Dic
             "type": "section",
             "text": {
                 "type": "mrkdwn",
-                "text": f"Good morning! Time for your standup for *{date_str}*"
+                "text": f"Good morning! Time for your standup for *{date_str}*\nLet's set you up for a successful day."
             }
         },
         {
@@ -45,12 +45,12 @@ def get_standup_message_blocks(client_id: int, scheduled_date: date) -> List[Dic
                 "multiline": True,
                 "placeholder": {
                     "type": "plain_text",
-                    "text": "What did you accomplish yesterday/last week?"
+                    "text": "List your key wins and completed tasks from yesterday"
                 }
             },
             "label": {
                 "type": "plain_text",
-                "text": "✅ Accomplishments"
+                "text": "✅ What did you accomplish yesterday?"
             }
         },
         {
@@ -62,12 +62,12 @@ def get_standup_message_blocks(client_id: int, scheduled_date: date) -> List[Dic
                 "multiline": True,
                 "placeholder": {
                     "type": "plain_text",
-                    "text": "What are you working on today/this week?"
+                    "text": "What are your top 1-3 priorities for today? Be specific about deliverables."
                 }
             },
             "label": {
                 "type": "plain_text",
-                "text": "🎯 Today's Focus"
+                "text": "🎯 What will you focus on today?"
             }
         },
         {
@@ -80,12 +80,12 @@ def get_standup_message_blocks(client_id: int, scheduled_date: date) -> List[Dic
                 "multiline": True,
                 "placeholder": {
                     "type": "plain_text",
-                    "text": "Any blockers or concerns?"
+                    "text": "Anything slowing you down? Need decisions, info, or help from someone?"
                 }
             },
             "label": {
                 "type": "plain_text",
-                "text": "🚧 Blockers (optional)"
+                "text": "🚧 Any blockers or things you need help with?"
             }
         },
         {

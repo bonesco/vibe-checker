@@ -25,14 +25,14 @@ def get_feedback_message_blocks(client_id: int, week_ending: date) -> List[Dict[
             "type": "header",
             "text": {
                 "type": "plain_text",
-                "text": "🎭 Weekly Vibe Check"
+                "text": "🎭 Friday Vibe Check - Weekly Retrospective"
             }
         },
         {
             "type": "section",
             "text": {
                 "type": "mrkdwn",
-                "text": f"Hey! Let's check in on how this week went (ending {week_str})"
+                "text": f"Hey! It's time for your weekly retrospective for the week ending *{week_str}*.\nLet's reflect on what worked, what didn't, and how we can improve."
             }
         },
         {
@@ -43,7 +43,7 @@ def get_feedback_message_blocks(client_id: int, week_ending: date) -> List[Dict[
             "block_id": f"feeling_rating_{client_id}_{week_key}",
             "text": {
                 "type": "mrkdwn",
-                "text": "*How are you feeling about this week?*"
+                "text": "*How are you feeling about this week overall?*"
             },
             "accessory": {
                 "type": "static_select",
@@ -53,11 +53,11 @@ def get_feedback_message_blocks(client_id: int, week_ending: date) -> List[Dict[
                     "text": "Select feeling"
                 },
                 "options": [
-                    {"text": {"type": "plain_text", "text": "😄 Great"}, "value": "5"},
-                    {"text": {"type": "plain_text", "text": "🙂 Good"}, "value": "4"},
-                    {"text": {"type": "plain_text", "text": "😐 Okay"}, "value": "3"},
-                    {"text": {"type": "plain_text", "text": "😕 Not great"}, "value": "2"},
-                    {"text": {"type": "plain_text", "text": "😞 Struggling"}, "value": "1"}
+                    {"text": {"type": "plain_text", "text": "😄 Great - Productive and energized"}, "value": "5"},
+                    {"text": {"type": "plain_text", "text": "🙂 Good - Solid progress made"}, "value": "4"},
+                    {"text": {"type": "plain_text", "text": "😐 Okay - Some ups and downs"}, "value": "3"},
+                    {"text": {"type": "plain_text", "text": "😕 Not great - Challenging week"}, "value": "2"},
+                    {"text": {"type": "plain_text", "text": "😞 Struggling - Need support"}, "value": "1"}
                 ]
             }
         },
@@ -71,30 +71,12 @@ def get_feedback_message_blocks(client_id: int, week_ending: date) -> List[Dict[
                 "multiline": True,
                 "placeholder": {
                     "type": "plain_text",
-                    "text": "Want to share more about how you're feeling?"
+                    "text": "What were your biggest wins or accomplishments this week? What are you proud of?"
                 }
             },
             "label": {
                 "type": "plain_text",
-                "text": "💭 Additional thoughts (optional)"
-            }
-        },
-        {
-            "type": "input",
-            "block_id": f"improvements_{client_id}_{week_key}",
-            "optional": True,
-            "element": {
-                "type": "plain_text_input",
-                "action_id": "improvements_input",
-                "multiline": True,
-                "placeholder": {
-                    "type": "plain_text",
-                    "text": "What could we improve?"
-                }
-            },
-            "label": {
-                "type": "plain_text",
-                "text": "💡 Suggestions for improvement"
+                "text": "🏆 What went well this week?"
             }
         },
         {
@@ -107,12 +89,30 @@ def get_feedback_message_blocks(client_id: int, week_ending: date) -> List[Dict[
                 "multiline": True,
                 "placeholder": {
                     "type": "plain_text",
-                    "text": "Any blockers or concerns?"
+                    "text": "What challenges did you face? What slowed you down or didn't go as planned?"
                 }
             },
             "label": {
                 "type": "plain_text",
-                "text": "🚧 Blockers (optional)"
+                "text": "🚧 What didn't go well?"
+            }
+        },
+        {
+            "type": "input",
+            "block_id": f"improvements_{client_id}_{week_key}",
+            "optional": True,
+            "element": {
+                "type": "plain_text_input",
+                "action_id": "improvements_input",
+                "multiline": True,
+                "placeholder": {
+                    "type": "plain_text",
+                    "text": "What would help you be more successful? Process changes, tools, communication, support needed?"
+                }
+            },
+            "label": {
+                "type": "plain_text",
+                "text": "💡 What can we improve for next week?"
             }
         },
         {
@@ -120,7 +120,7 @@ def get_feedback_message_blocks(client_id: int, week_ending: date) -> List[Dict[
             "block_id": f"satisfaction_rating_{client_id}_{week_key}",
             "text": {
                 "type": "mrkdwn",
-                "text": "*Overall satisfaction with our work together:*"
+                "text": "*How satisfied are you with the progress and collaboration this week?*"
             },
             "accessory": {
                 "type": "static_select",
@@ -146,7 +146,7 @@ def get_feedback_message_blocks(client_id: int, week_ending: date) -> List[Dict[
                     "type": "button",
                     "text": {
                         "type": "plain_text",
-                        "text": "Submit Feedback"
+                        "text": "Submit Vibe Check"
                     },
                     "style": "primary",
                     "action_id": "submit_feedback",
@@ -210,7 +210,7 @@ def get_vibe_channel_feedback_blocks(client: Client, response: FeedbackResponse)
             "type": "header",
             "text": {
                 "type": "plain_text",
-                "text": f"{alert_emoji}{feeling_emoji} Weekly Feedback from {client.display_name or client.slack_user_id}"
+                "text": f"{alert_emoji}{feeling_emoji} Weekly Retrospective from {client.display_name or client.slack_user_id}"
             }
         },
         {
@@ -218,7 +218,7 @@ def get_vibe_channel_feedback_blocks(client: Client, response: FeedbackResponse)
             "fields": [
                 {
                     "type": "mrkdwn",
-                    "text": f"*Feeling:* {feeling_emoji} ({response.feeling_rating or 'N/A'}/5)"
+                    "text": f"*Overall Feeling:* {feeling_emoji} ({response.feeling_rating or 'N/A'}/5)"
                 },
                 {
                     "type": "mrkdwn",
@@ -239,33 +239,33 @@ def get_vibe_channel_feedback_blocks(client: Client, response: FeedbackResponse)
         }
     ]
 
-    # Additional thoughts
+    # What went well
     if response.feeling_text:
         blocks.append({
             "type": "section",
             "text": {
                 "type": "mrkdwn",
-                "text": f"*Additional Thoughts:*\n{response.feeling_text}"
+                "text": f"*🏆 What went well:*\n{response.feeling_text}"
             }
         })
 
-    # Improvements
-    if response.improvements:
-        blocks.append({
-            "type": "section",
-            "text": {
-                "type": "mrkdwn",
-                "text": f"*Suggestions for Improvement:*\n{response.improvements}"
-            }
-        })
-
-    # Blockers
+    # What didn't go well
     if response.blockers:
         blocks.append({
             "type": "section",
             "text": {
                 "type": "mrkdwn",
-                "text": f"*Blockers/Concerns:*\n{response.blockers}"
+                "text": f"*🚧 What didn't go well:*\n{response.blockers}"
+            }
+        })
+
+    # Improvements for next week
+    if response.improvements:
+        blocks.append({
+            "type": "section",
+            "text": {
+                "type": "mrkdwn",
+                "text": f"*💡 Improvements for next week:*\n{response.improvements}"
             }
         })
 

@@ -107,19 +107,23 @@ DASHBOARD_HTML = """
             color: #333;
             line-height: 1.6;
         }
-        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+        .container { max-width: 1400px; margin: 0 auto; padding: 20px; }
         header {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             padding: 30px 20px;
             margin-bottom: 30px;
         }
+        .header-content { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
         header h1 { font-size: 2em; margin-bottom: 5px; }
         header p { opacity: 0.9; }
+        .header-actions { display: flex; gap: 10px; align-items: center; }
+        .auto-refresh { display: flex; align-items: center; gap: 5px; font-size: 0.9em; }
+        .auto-refresh input { cursor: pointer; }
         .stats {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 15px;
             margin-bottom: 30px;
         }
         .stat-card {
@@ -129,8 +133,14 @@ DASHBOARD_HTML = """
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
             text-align: center;
         }
-        .stat-card h3 { font-size: 2.5em; color: #667eea; }
-        .stat-card p { color: #666; font-size: 0.9em; }
+        .stat-card.highlight { border-left: 4px solid #667eea; }
+        .stat-card h3 { font-size: 2.2em; color: #667eea; margin-bottom: 5px; }
+        .stat-card p { color: #666; font-size: 0.85em; }
+        .stat-card .trend { font-size: 0.75em; margin-top: 5px; }
+        .stat-card .trend.up { color: #28a745; }
+        .stat-card .trend.down { color: #dc3545; }
+        .stat-card .emoji { font-size: 1.5em; margin-bottom: 10px; }
+        .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 20px; }
         .card {
             background: white;
             border-radius: 10px;
@@ -146,120 +156,226 @@ DASHBOARD_HTML = """
             justify-content: space-between;
             align-items: center;
         }
-        .card-header h2 { font-size: 1.2em; }
+        .card-header h2 { font-size: 1.1em; display: flex; align-items: center; gap: 8px; }
         .card-body { padding: 20px; }
+        .card-body.compact { padding: 0; }
         table { width: 100%; border-collapse: collapse; }
-        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #eee; }
-        th { background: #f8f9fa; font-weight: 600; }
+        th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #eee; }
+        th { background: #f8f9fa; font-weight: 600; font-size: 0.85em; text-transform: uppercase; color: #666; }
         tr:hover { background: #f8f9fa; }
         .badge {
             display: inline-block;
-            padding: 4px 10px;
-            border-radius: 20px;
-            font-size: 0.8em;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 0.75em;
             font-weight: 500;
         }
         .badge-success { background: #d4edda; color: #155724; }
         .badge-warning { background: #fff3cd; color: #856404; }
         .badge-info { background: #d1ecf1; color: #0c5460; }
         .badge-danger { background: #f8d7da; color: #721c24; }
+        .badge-secondary { background: #e9ecef; color: #495057; }
+        .badge-purple { background: #e8daef; color: #6c3483; }
         .btn {
             display: inline-block;
-            padding: 8px 16px;
+            padding: 6px 12px;
             border: none;
             border-radius: 5px;
             cursor: pointer;
-            font-size: 0.9em;
+            font-size: 0.8em;
             text-decoration: none;
-            transition: opacity 0.2s;
+            transition: all 0.2s;
         }
-        .btn:hover { opacity: 0.8; }
+        .btn:hover { opacity: 0.85; transform: translateY(-1px); }
         .btn-primary { background: #667eea; color: white; }
         .btn-success { background: #28a745; color: white; }
-        .btn-danger { background: #dc3545; color: white; }
-        .btn-sm { padding: 5px 10px; font-size: 0.8em; }
-        .actions { display: flex; gap: 5px; }
+        .btn-warning { background: #ffc107; color: #333; }
+        .btn-info { background: #17a2b8; color: white; }
+        .btn-outline { background: transparent; border: 1px solid #ddd; color: #666; }
+        .btn-outline:hover { background: #f8f9fa; }
+        .btn-sm { padding: 4px 8px; font-size: 0.75em; }
+        .actions { display: flex; gap: 5px; flex-wrap: wrap; }
         .empty-state { text-align: center; padding: 40px; color: #666; }
         .refresh-note { text-align: center; color: #666; font-size: 0.85em; margin-top: 20px; }
-        .status-dot {
-            display: inline-block;
-            width: 10px;
-            height: 10px;
+        .client-avatar {
+            width: 36px;
+            height: 36px;
             border-radius: 50%;
-            margin-right: 5px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 0.9em;
+            margin-right: 10px;
         }
-        .status-active { background: #28a745; }
-        .status-paused { background: #ffc107; }
-        .status-inactive { background: #dc3545; }
+        .client-info { display: flex; align-items: center; }
+        .client-details { display: flex; flex-direction: column; }
+        .client-name { font-weight: 600; }
+        .client-meta { font-size: 0.8em; color: #666; }
+        .schedule-info { display: flex; flex-direction: column; gap: 4px; }
+        .schedule-item { display: flex; align-items: center; gap: 5px; font-size: 0.85em; }
+        .schedule-item .icon { width: 16px; text-align: center; }
+        .response-preview {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 12px;
+            margin: 10px 0;
+            font-size: 0.9em;
+        }
+        .response-preview .label { font-weight: 600; color: #666; font-size: 0.8em; margin-bottom: 4px; }
+        .response-preview .content { color: #333; }
+        .rating-display { display: flex; align-items: center; gap: 3px; }
+        .tab-container { display: flex; gap: 5px; }
+        .tab {
+            padding: 8px 16px;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            font-size: 0.9em;
+            color: #666;
+        }
+        .tab:hover { color: #333; }
+        .tab.active { color: #667eea; border-bottom-color: #667eea; font-weight: 500; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .tooltip {
+            position: relative;
+            cursor: help;
+        }
+        .tooltip:hover::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #333;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 0.75em;
+            white-space: nowrap;
+            z-index: 100;
+        }
         @media (max-width: 768px) {
             .stats { grid-template-columns: 1fr 1fr; }
+            .grid-2 { grid-template-columns: 1fr; }
             table { font-size: 0.85em; }
             th, td { padding: 8px; }
+            .header-content { flex-direction: column; align-items: flex-start; }
         }
     </style>
 </head>
 <body>
     <header>
         <div class="container">
-            <h1>🎭 Vibe Check Dashboard</h1>
-            <p>Manage your client check-ins and view responses</p>
+            <div class="header-content">
+                <div>
+                    <h1>🎭 Vibe Check Dashboard</h1>
+                    <p>Manage your client check-ins and view responses</p>
+                </div>
+                <div class="header-actions">
+                    <label class="auto-refresh">
+                        <input type="checkbox" id="autoRefresh" onchange="toggleAutoRefresh()">
+                        Auto-refresh (30s)
+                    </label>
+                    <a href="/admin/refresh?key={{ request.args.get('key', '') }}" class="btn btn-outline" style="color:white;border-color:rgba(255,255,255,0.5)">↻ Refresh</a>
+                </div>
+            </div>
         </div>
     </header>
 
     <div class="container">
         <div class="stats">
-            <div class="stat-card">
+            <div class="stat-card highlight">
+                <div class="emoji">👥</div>
                 <h3>{{ stats.total_clients }}</h3>
                 <p>Total Clients</p>
             </div>
             <div class="stat-card">
+                <div class="emoji">✅</div>
                 <h3>{{ stats.active_clients }}</h3>
-                <p>Active Clients</p>
+                <p>Active (Not Paused)</p>
             </div>
             <div class="stat-card">
+                <div class="emoji">📅</div>
                 <h3>{{ stats.scheduled_jobs }}</h3>
                 <p>Scheduled Jobs</p>
             </div>
             <div class="stat-card">
+                <div class="emoji">📝</div>
                 <h3>{{ stats.responses_today }}</h3>
                 <p>Responses Today</p>
+            </div>
+            <div class="stat-card">
+                <div class="emoji">{{ '😄' if stats.avg_feeling >= 4 else '🙂' if stats.avg_feeling >= 3 else '😐' if stats.avg_feeling >= 2 else '📊' }}</div>
+                <h3>{{ '%.1f' | format(stats.avg_feeling) if stats.avg_feeling else '-' }}</h3>
+                <p>Avg Feeling (7d)</p>
+            </div>
+            <div class="stat-card">
+                <div class="emoji">⭐</div>
+                <h3>{{ '%.1f' | format(stats.avg_satisfaction) if stats.avg_satisfaction else '-' }}</h3>
+                <p>Avg Satisfaction (7d)</p>
             </div>
         </div>
 
         <div class="card">
             <div class="card-header">
                 <h2>📋 Clients</h2>
-                <a href="/admin/refresh?key={{ request.args.get('key', '') }}" class="btn btn-primary btn-sm">↻ Refresh</a>
+                <div class="tab-container">
+                    <button class="tab active" onclick="showTab('all')">All ({{ clients|length }})</button>
+                    <button class="tab" onclick="showTab('active')">Active</button>
+                    <button class="tab" onclick="showTab('paused')">Paused</button>
+                </div>
             </div>
-            <div class="card-body">
+            <div class="card-body compact">
                 {% if clients %}
                 <table>
                     <thead>
                         <tr>
                             <th>Client</th>
-                            <th>Schedule</th>
+                            <th>Check-ins</th>
                             <th>Next Send</th>
                             <th>Status</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody id="clientsTable">
                         {% for client in clients %}
-                        <tr>
+                        <tr data-status="{{ 'paused' if client.is_paused else 'active' }}">
                             <td>
-                                <strong>{{ client.display_name }}</strong>
-                                <br><small style="color:#666">{{ client.timezone }}</small>
+                                <div class="client-info">
+                                    <div class="client-avatar">{{ client.display_name[0] | upper }}</div>
+                                    <div class="client-details">
+                                        <span class="client-name">{{ client.display_name }}</span>
+                                        <span class="client-meta">{{ client.timezone }}</span>
+                                    </div>
+                                </div>
                             </td>
                             <td>
-                                {% if client.schedule %}
-                                    {{ client.schedule }}
-                                {% else %}
-                                    <span style="color:#999">Not configured</span>
-                                {% endif %}
+                                <div class="schedule-info">
+                                    {% if client.standup_schedule %}
+                                    <div class="schedule-item">
+                                        <span class="icon">📋</span>
+                                        <span>{{ client.standup_schedule }}</span>
+                                    </div>
+                                    {% endif %}
+                                    {% if client.vibe_check_enabled %}
+                                    <div class="schedule-item">
+                                        <span class="icon">🎭</span>
+                                        <span>Fridays at {{ client.vibe_check_time }}</span>
+                                    </div>
+                                    {% endif %}
+                                    {% if not client.standup_schedule and not client.vibe_check_enabled %}
+                                    <span style="color:#999">None configured</span>
+                                    {% endif %}
+                                </div>
                             </td>
                             <td>
                                 {% if client.next_run %}
-                                    {{ client.next_run }}
+                                    <span class="tooltip" data-tooltip="Next scheduled send">{{ client.next_run }}</span>
                                 {% else %}
                                     <span style="color:#999">-</span>
                                 {% endif %}
@@ -274,8 +390,12 @@ DASHBOARD_HTML = """
                                 {% endif %}
                             </td>
                             <td class="actions">
-                                <a href="/admin/send/standup/{{ client.id }}?key={{ request.args.get('key', '') }}" class="btn btn-success btn-sm" onclick="return confirm('Send standup to {{ client.display_name }} now?')">Send Now</a>
-                                <a href="/admin/send/feedback/{{ client.id }}?key={{ request.args.get('key', '') }}" class="btn btn-info btn-sm" style="background:#17a2b8" onclick="return confirm('Send feedback form to {{ client.display_name }} now?')">Feedback</a>
+                                {% if client.standup_schedule %}
+                                <a href="/admin/send/standup/{{ client.id }}?key={{ request.args.get('key', '') }}" class="btn btn-success btn-sm" onclick="return confirm('Send standup to {{ client.display_name }} now?')" title="Send Standup">📋</a>
+                                {% endif %}
+                                {% if client.vibe_check_enabled %}
+                                <a href="/admin/send/feedback/{{ client.id }}?key={{ request.args.get('key', '') }}" class="btn btn-info btn-sm" onclick="return confirm('Send vibe check to {{ client.display_name }} now?')" title="Send Vibe Check">🎭</a>
+                                {% endif %}
                             </td>
                         </tr>
                         {% endfor %}
@@ -289,86 +409,181 @@ DASHBOARD_HTML = """
             </div>
         </div>
 
-        <div class="card">
-            <div class="card-header">
-                <h2>⏰ Scheduled Jobs</h2>
-            </div>
-            <div class="card-body">
-                {% if jobs %}
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Job ID</th>
-                            <th>Type</th>
-                            <th>Next Run</th>
-                            <th>Trigger</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for job in jobs %}
-                        <tr>
-                            <td><code>{{ job.id }}</code></td>
-                            <td>
-                                {% if 'standup' in job.id %}
-                                    <span class="badge badge-info">Standup</span>
-                                {% else %}
-                                    <span class="badge badge-success">Feedback</span>
-                                {% endif %}
-                            </td>
-                            <td>{{ job.next_run or 'Not scheduled' }}</td>
-                            <td><small>{{ job.trigger }}</small></td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-                {% else %}
-                <div class="empty-state">
-                    <p>No scheduled jobs. Jobs are created when you add clients.</p>
+        <div class="grid-2">
+            <div class="card">
+                <div class="card-header">
+                    <h2>📊 Recent Responses</h2>
                 </div>
-                {% endif %}
+                <div class="card-body compact">
+                    {% if responses %}
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Client</th>
+                                <th>Type</th>
+                                <th>Rating</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for response in responses %}
+                            <tr>
+                                <td>{{ response.client_name }}</td>
+                                <td>
+                                    <span class="badge badge-{{ 'info' if response.type == 'standup' else 'purple' }}">
+                                        {{ 'Standup' if response.type == 'standup' else 'Vibe Check' }}
+                                    </span>
+                                </td>
+                                <td>
+                                    {% if response.rating %}
+                                    <span class="rating-display">
+                                        {{ response.rating_emoji }} {{ response.rating }}/5
+                                    </span>
+                                    {% else %}
+                                    <span style="color:#999">-</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <span class="tooltip" data-tooltip="{{ response.response_time }}">{{ response.date }}</span>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    {% else %}
+                    <div class="empty-state">
+                        <p>No responses yet.</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h2>⏰ Scheduled Jobs</h2>
+                </div>
+                <div class="card-body compact">
+                    {% if jobs %}
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Type</th>
+                                <th>Next Run</th>
+                                <th>Schedule</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for job in jobs %}
+                            <tr>
+                                <td>
+                                    {% if 'standup' in job.id %}
+                                        <span class="badge badge-info">📋 Standup</span>
+                                    {% else %}
+                                        <span class="badge badge-purple">🎭 Vibe Check</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ job.next_run_formatted or 'Not scheduled' }}</td>
+                                <td><small style="color:#666">{{ job.trigger }}</small></td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    {% else %}
+                    <div class="empty-state">
+                        <p>No scheduled jobs.</p>
+                    </div>
+                    {% endif %}
+                </div>
             </div>
         </div>
 
+        {% if latest_responses %}
         <div class="card">
             <div class="card-header">
-                <h2>📊 Recent Responses</h2>
+                <h2>💬 Latest Response Details</h2>
             </div>
             <div class="card-body">
-                {% if responses %}
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Client</th>
-                            <th>Type</th>
-                            <th>Date</th>
-                            <th>Response Time</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for response in responses %}
-                        <tr>
-                            <td>{{ response.client_name }}</td>
-                            <td>
-                                <span class="badge badge-{{ 'info' if response.type == 'standup' else 'success' }}">
-                                    {{ response.type | capitalize }}
-                                </span>
-                            </td>
-                            <td>{{ response.date }}</td>
-                            <td>{{ response.response_time }}</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-                {% else %}
-                <div class="empty-state">
-                    <p>No responses yet. Responses will appear here once clients submit their standups or feedback.</p>
+                {% for resp in latest_responses[:3] %}
+                <div class="response-preview">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+                        <strong>{{ resp.client_name }}</strong>
+                        <span class="badge badge-{{ 'info' if resp.type == 'standup' else 'purple' }}">
+                            {{ 'Standup' if resp.type == 'standup' else 'Vibe Check' }} - {{ resp.date }}
+                        </span>
+                    </div>
+                    {% if resp.type == 'standup' %}
+                        {% if resp.accomplishments %}
+                        <div class="label">✅ Accomplishments</div>
+                        <div class="content">{{ resp.accomplishments }}</div>
+                        {% endif %}
+                        {% if resp.working_on %}
+                        <div class="label" style="margin-top:8px">🎯 Today's Focus</div>
+                        <div class="content">{{ resp.working_on }}</div>
+                        {% endif %}
+                    {% else %}
+                        {% if resp.feeling_text %}
+                        <div class="label">🏆 What went well</div>
+                        <div class="content">{{ resp.feeling_text }}</div>
+                        {% endif %}
+                        {% if resp.improvements %}
+                        <div class="label" style="margin-top:8px">💡 Improvements</div>
+                        <div class="content">{{ resp.improvements }}</div>
+                        {% endif %}
+                    {% endif %}
                 </div>
-                {% endif %}
+                {% endfor %}
             </div>
         </div>
+        {% endif %}
 
-        <p class="refresh-note">Dashboard data refreshes on page load. <a href="/admin?key={{ request.args.get('key', '') }}">Refresh now</a></p>
+        <p class="refresh-note">
+            Last updated: <span id="lastUpdate">{{ now }}</span>
+            <span id="countdown"></span>
+        </p>
     </div>
+
+    <script>
+        let refreshInterval;
+
+        function toggleAutoRefresh() {
+            const checkbox = document.getElementById('autoRefresh');
+            if (checkbox.checked) {
+                refreshInterval = setInterval(() => {
+                    window.location.reload();
+                }, 30000);
+                updateCountdown(30);
+            } else {
+                clearInterval(refreshInterval);
+                document.getElementById('countdown').textContent = '';
+            }
+        }
+
+        function updateCountdown(seconds) {
+            const el = document.getElementById('countdown');
+            let remaining = seconds;
+            const countdownInterval = setInterval(() => {
+                remaining--;
+                if (remaining <= 0) {
+                    clearInterval(countdownInterval);
+                } else {
+                    el.textContent = ` (refreshing in ${remaining}s)`;
+                }
+            }, 1000);
+        }
+
+        function showTab(filter) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            event.target.classList.add('active');
+
+            document.querySelectorAll('#clientsTable tr').forEach(row => {
+                if (filter === 'all') {
+                    row.style.display = '';
+                } else {
+                    row.style.display = row.dataset.status === filter ? '' : 'none';
+                }
+            });
+        }
+    </script>
 </body>
 </html>
 """
@@ -439,6 +654,7 @@ def create_flask_app(slack_app: App) -> Flask:
     def admin_dashboard():
         """Admin dashboard"""
         from sqlalchemy.orm import joinedload
+        from sqlalchemy import func
         from src.database.session import get_session
         from src.models.client import Client
         from src.models.standup_response import StandupResponse
@@ -460,30 +676,34 @@ def create_flask_app(slack_app: App) -> Flask:
             # Create a map of job next_run times by client_id
             job_next_runs = {}
             for job in jobs:
-                # Parse client_id from job id (format: standup_workspace_clientid or feedback_workspace_clientid)
                 parts = job['id'].split('_')
                 if len(parts) >= 3:
                     try:
                         client_id = int(parts[2])
                         if job['next_run']:
-                            job_next_runs[client_id] = job['next_run'].strftime('%Y-%m-%d %H:%M') if hasattr(job['next_run'], 'strftime') else str(job['next_run'])
+                            job_next_runs[client_id] = job['next_run'].strftime('%b %d %H:%M') if hasattr(job['next_run'], 'strftime') else str(job['next_run'])
                     except (ValueError, IndexError):
                         pass
 
-            # Build client data list to avoid template issues with ORM objects
+            # Build client data with both standup and vibe check info
             client_data = []
             for client in clients:
-                schedule_str = None
+                standup_schedule = None
                 if client.standup_config and client.standup_config.schedule_time:
-                    schedule_type = 'Daily' if client.standup_config.schedule_type == 'daily' else 'Mondays'
+                    schedule_type = 'Daily' if client.standup_config.schedule_type == 'daily' else 'Mon'
                     schedule_time = client.standup_config.schedule_time.strftime('%I:%M %p')
-                    schedule_str = f"{schedule_type} at {schedule_time}"
+                    standup_schedule = f"{schedule_type} at {schedule_time}"
+
+                vibe_check_enabled = client.feedback_config and client.feedback_config.is_enabled
+                vibe_check_time = client.feedback_config.schedule_time.strftime('%I:%M %p') if client.feedback_config and client.feedback_config.schedule_time else '3:00 PM'
 
                 client_data.append({
                     'id': client.id,
                     'display_name': client.display_name or client.slack_user_id,
                     'timezone': client.timezone,
-                    'schedule': schedule_str,
+                    'standup_schedule': standup_schedule,
+                    'vibe_check_enabled': vibe_check_enabled,
+                    'vibe_check_time': vibe_check_time,
                     'next_run': job_next_runs.get(client.id),
                     'is_active': client.is_active,
                     'is_paused': client.standup_config.is_paused if client.standup_config else False
@@ -491,15 +711,28 @@ def create_flask_app(slack_app: App) -> Flask:
 
             # Get today's responses
             today = date.today()
+            week_ago = today - timedelta(days=7)
+
             standup_responses_today = session.query(StandupResponse).filter(
                 StandupResponse.scheduled_date == today
             ).count()
 
             feedback_responses_today = session.query(FeedbackResponse).filter(
-                FeedbackResponse.week_ending >= today - timedelta(days=7)
+                FeedbackResponse.week_ending >= week_ago
             ).count()
 
-            # Get recent responses
+            # Calculate average ratings from last 7 days
+            avg_feeling = session.query(func.avg(FeedbackResponse.feeling_rating)).filter(
+                FeedbackResponse.submitted_at >= datetime.now() - timedelta(days=7),
+                FeedbackResponse.feeling_rating.isnot(None)
+            ).scalar()
+
+            avg_satisfaction = session.query(func.avg(FeedbackResponse.satisfaction_rating)).filter(
+                FeedbackResponse.submitted_at >= datetime.now() - timedelta(days=7),
+                FeedbackResponse.satisfaction_rating.isnot(None)
+            ).scalar()
+
+            # Get recent responses with ratings
             recent_standups = session.query(StandupResponse).order_by(
                 StandupResponse.submitted_at.desc()
             ).limit(5).all()
@@ -508,34 +741,68 @@ def create_flask_app(slack_app: App) -> Flask:
                 FeedbackResponse.submitted_at.desc()
             ).limit(5).all()
 
+            # Emoji mapping for ratings
+            feeling_emojis = {5: '😄', 4: '🙂', 3: '😐', 2: '😕', 1: '😞'}
+
             responses = []
+            latest_responses = []
+
             for r in recent_standups:
                 client = session.query(Client).filter_by(id=r.client_id).first()
+                client_name = client.display_name if client else f"Client {r.client_id}"
                 responses.append({
-                    'client_name': client.display_name if client else f"Client {r.client_id}",
+                    'client_name': client_name,
                     'type': 'standup',
-                    'date': r.scheduled_date.strftime('%Y-%m-%d') if r.scheduled_date else '-',
-                    'response_time': f"{r.response_time_seconds // 60}m" if r.response_time_seconds else '-'
+                    'date': r.scheduled_date.strftime('%b %d') if r.scheduled_date else '-',
+                    'response_time': f"{r.response_time_seconds // 60}m" if r.response_time_seconds else '-',
+                    'rating': None,
+                    'rating_emoji': None
+                })
+                latest_responses.append({
+                    'client_name': client_name,
+                    'type': 'standup',
+                    'date': r.scheduled_date.strftime('%b %d') if r.scheduled_date else '-',
+                    'accomplishments': r.accomplishments[:200] + '...' if r.accomplishments and len(r.accomplishments) > 200 else r.accomplishments,
+                    'working_on': r.working_on[:200] + '...' if r.working_on and len(r.working_on) > 200 else r.working_on
                 })
 
             for r in recent_feedbacks:
                 client = session.query(Client).filter_by(id=r.client_id).first()
+                client_name = client.display_name if client else f"Client {r.client_id}"
                 responses.append({
-                    'client_name': client.display_name if client else f"Client {r.client_id}",
+                    'client_name': client_name,
                     'type': 'feedback',
-                    'date': r.week_ending.strftime('%Y-%m-%d') if r.week_ending else '-',
-                    'response_time': f"{r.response_time_seconds // 60}m" if r.response_time_seconds else '-'
+                    'date': r.week_ending.strftime('%b %d') if r.week_ending else '-',
+                    'response_time': f"{r.response_time_seconds // 60}m" if r.response_time_seconds else '-',
+                    'rating': r.feeling_rating,
+                    'rating_emoji': feeling_emojis.get(r.feeling_rating, '')
+                })
+                latest_responses.append({
+                    'client_name': client_name,
+                    'type': 'feedback',
+                    'date': r.week_ending.strftime('%b %d') if r.week_ending else '-',
+                    'feeling_text': r.feeling_text[:200] + '...' if r.feeling_text and len(r.feeling_text) > 200 else r.feeling_text,
+                    'improvements': r.improvements[:200] + '...' if r.improvements and len(r.improvements) > 200 else r.improvements
                 })
 
             # Sort responses by date
             responses.sort(key=lambda x: x['date'], reverse=True)
             responses = responses[:10]
 
+            # Format job next_run times
+            for job in jobs:
+                if job.get('next_run') and hasattr(job['next_run'], 'strftime'):
+                    job['next_run_formatted'] = job['next_run'].strftime('%b %d %H:%M')
+                else:
+                    job['next_run_formatted'] = str(job.get('next_run', ''))
+
             stats = {
                 'total_clients': len(client_data),
                 'active_clients': len([c for c in client_data if not c['is_paused']]),
                 'scheduled_jobs': len(jobs),
-                'responses_today': standup_responses_today + feedback_responses_today
+                'responses_today': standup_responses_today + feedback_responses_today,
+                'avg_feeling': float(avg_feeling) if avg_feeling else None,
+                'avg_satisfaction': float(avg_satisfaction) if avg_satisfaction else None
             }
 
             return render_template_string(
@@ -543,7 +810,9 @@ def create_flask_app(slack_app: App) -> Flask:
                 clients=client_data,
                 jobs=jobs,
                 responses=responses,
-                stats=stats
+                latest_responses=latest_responses[:3],
+                stats=stats,
+                now=datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             )
         except Exception as e:
             logger.error(f"Admin dashboard error: {e}", exc_info=True)

@@ -1,6 +1,8 @@
 """Slack Bolt app factory"""
 
 import os
+import secrets
+from functools import wraps
 from datetime import datetime
 from slack_bolt import App
 from slack_bolt.adapter.flask import SlackRequestHandler
@@ -9,6 +11,53 @@ from src.config import config
 from src.utils.logger import setup_logger
 
 logger = setup_logger(__name__)
+
+
+def require_admin_auth(f):
+    """Decorator to require API key authentication for admin endpoints"""
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        # Check if admin API key is configured
+        if not config.ADMIN_API_KEY:
+            logger.warning("Admin endpoint accessed but ADMIN_API_KEY not configured")
+            return """
+            <html>
+                <head><title>Admin Not Configured</title></head>
+                <body style="font-family: sans-serif; max-width: 600px; margin: 50px auto; padding: 20px;">
+                    <h1>Admin Access Not Configured</h1>
+                    <p>To enable the admin dashboard, set the <code>ADMIN_API_KEY</code> environment variable.</p>
+                    <p>Generate a secure key with:</p>
+                    <pre style="background: #f5f5f5; padding: 10px;">python -c "import secrets; print(secrets.token_urlsafe(32))"</pre>
+                    <p>Then access the dashboard with <code>/admin?key=YOUR_KEY</code></p>
+                </body>
+            </html>
+            """, 503
+
+        # Check for API key in header or query param
+        provided_key = request.headers.get('X-Admin-Key') or request.args.get('key')
+
+        if not provided_key:
+            return """
+            <html>
+                <head><title>Authentication Required</title></head>
+                <body style="font-family: sans-serif; max-width: 600px; margin: 50px auto; padding: 20px;">
+                    <h1>Authentication Required</h1>
+                    <p>Access the admin dashboard with your API key:</p>
+                    <ul>
+                        <li>Add <code>?key=YOUR_API_KEY</code> to the URL, or</li>
+                        <li>Set the <code>X-Admin-Key</code> header</li>
+                    </ul>
+                </body>
+            </html>
+            """, 401
+
+        # Constant-time comparison to prevent timing attacks
+        if not secrets.compare_digest(provided_key, config.ADMIN_API_KEY):
+            logger.warning(f"Invalid admin API key attempt from {request.remote_addr}")
+            return jsonify({"error": "Invalid API key"}), 403
+
+        return f(*args, **kwargs)
+    return decorated_function
 
 
 def create_slack_app() -> App:
@@ -180,7 +229,7 @@ DASHBOARD_HTML = """
         <div class="card">
             <div class="card-header">
                 <h2>📋 Clients</h2>
-                <a href="/admin/refresh" class="btn btn-primary btn-sm">↻ Refresh</a>
+                <a href="/admin/refresh?key={{ request.args.get('key', '') }}" class="btn btn-primary btn-sm">↻ Refresh</a>
             </div>
             <div class="card-body">
                 {% if clients %}
@@ -225,8 +274,8 @@ DASHBOARD_HTML = """
                                 {% endif %}
                             </td>
                             <td class="actions">
-                                <a href="/admin/send/standup/{{ client.id }}" class="btn btn-success btn-sm" onclick="return confirm('Send standup to {{ client.display_name }} now?')">Send Now</a>
-                                <a href="/admin/send/feedback/{{ client.id }}" class="btn btn-info btn-sm" style="background:#17a2b8" onclick="return confirm('Send feedback form to {{ client.display_name }} now?')">Feedback</a>
+                                <a href="/admin/send/standup/{{ client.id }}?key={{ request.args.get('key', '') }}" class="btn btn-success btn-sm" onclick="return confirm('Send standup to {{ client.display_name }} now?')">Send Now</a>
+                                <a href="/admin/send/feedback/{{ client.id }}?key={{ request.args.get('key', '') }}" class="btn btn-info btn-sm" style="background:#17a2b8" onclick="return confirm('Send feedback form to {{ client.display_name }} now?')">Feedback</a>
                             </td>
                         </tr>
                         {% endfor %}
@@ -318,7 +367,7 @@ DASHBOARD_HTML = """
             </div>
         </div>
 
-        <p class="refresh-note">Dashboard data refreshes on page load. <a href="/admin">Refresh now</a></p>
+        <p class="refresh-note">Dashboard data refreshes on page load. <a href="/admin?key={{ request.args.get('key', '') }}">Refresh now</a></p>
     </div>
 </body>
 </html>
@@ -357,7 +406,7 @@ def create_flask_app(slack_app: App) -> Flask:
 
     @flask_app.route("/", methods=["GET"])
     def home():
-        """Home page - redirect to admin"""
+        """Home page"""
         return """
         <html>
             <head>
@@ -373,27 +422,20 @@ def create_flask_app(slack_app: App) -> Flask:
                     h1 { color: #333; }
                     p { color: #666; margin-bottom: 20px; }
                     a { color: #667eea; }
-                    .btn {
-                        display: inline-block;
-                        padding: 12px 24px;
-                        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                        color: white;
-                        text-decoration: none;
-                        border-radius: 5px;
-                        margin-top: 20px;
-                    }
+                    code { background: #f5f5f5; padding: 2px 6px; border-radius: 3px; }
                 </style>
             </head>
             <body>
                 <h1>🎭 Vibe Check</h1>
-                <p>Slack app is running. Use /vibe-help in Slack to get started.</p>
-                <a href="/admin" class="btn">Open Admin Dashboard</a>
+                <p>Slack app is running. Use <code>/vibe-help</code> in Slack to get started.</p>
+                <p style="font-size: 0.9em; color: #999;">Admin dashboard available at <code>/admin?key=YOUR_API_KEY</code></p>
             </body>
         </html>
         """
 
     @flask_app.route("/admin", methods=["GET"])
     @flask_app.route("/admin/", methods=["GET"])
+    @require_admin_auth
     def admin_dashboard():
         """Admin dashboard"""
         from sqlalchemy.orm import joinedload
@@ -510,12 +552,16 @@ def create_flask_app(slack_app: App) -> Flask:
             session.close()
 
     @flask_app.route("/admin/refresh", methods=["GET"])
+    @require_admin_auth
     def admin_refresh():
         """Refresh and redirect to admin"""
         from flask import redirect
-        return redirect('/admin')
+        # Preserve the API key in the redirect
+        key = request.args.get('key', '')
+        return redirect(f'/admin?key={key}' if key else '/admin')
 
     @flask_app.route("/admin/send/standup/<int:client_id>", methods=["GET"])
+    @require_admin_auth
     def send_standup_now(client_id):
         """Manually send standup to a client"""
         from flask import redirect
@@ -534,9 +580,12 @@ def create_flask_app(slack_app: App) -> Flask:
         finally:
             session.close()
 
-        return redirect('/admin')
+        # Preserve the API key in the redirect
+        key = request.args.get('key', '')
+        return redirect(f'/admin?key={key}' if key else '/admin')
 
     @flask_app.route("/admin/send/feedback/<int:client_id>", methods=["GET"])
+    @require_admin_auth
     def send_feedback_now(client_id):
         """Manually send feedback to a client"""
         from flask import redirect
@@ -555,9 +604,12 @@ def create_flask_app(slack_app: App) -> Flask:
         finally:
             session.close()
 
-        return redirect('/admin')
+        # Preserve the API key in the redirect
+        key = request.args.get('key', '')
+        return redirect(f'/admin?key={key}' if key else '/admin')
 
     @flask_app.route("/api/clients", methods=["GET"])
+    @require_admin_auth
     def api_clients():
         """API endpoint to get all clients"""
         from src.database.session import get_session
@@ -580,6 +632,7 @@ def create_flask_app(slack_app: App) -> Flask:
             session.close()
 
     @flask_app.route("/api/jobs", methods=["GET"])
+    @require_admin_auth
     def api_jobs():
         """API endpoint to get scheduled jobs"""
         from src.services.scheduler_service import get_scheduled_jobs

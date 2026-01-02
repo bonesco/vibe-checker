@@ -37,6 +37,9 @@ class Config:
     REMINDER_DELAY_HOURS: int = 4
     DATA_RETENTION_DAYS: int = 90
 
+    # Optional - Admin Dashboard Security
+    ADMIN_API_KEY: Optional[str] = None  # Required for admin dashboard access
+
     @classmethod
     def from_env(cls):
         """Create config from environment variables"""
@@ -61,7 +64,10 @@ class Config:
             # Features
             ENABLE_REMINDERS=os.getenv('ENABLE_REMINDERS', 'true').lower() == 'true',
             REMINDER_DELAY_HOURS=int(os.getenv('REMINDER_DELAY_HOURS', '4')),
-            DATA_RETENTION_DAYS=int(os.getenv('DATA_RETENTION_DAYS', '90'))
+            DATA_RETENTION_DAYS=int(os.getenv('DATA_RETENTION_DAYS', '90')),
+
+            # Admin Security
+            ADMIN_API_KEY=os.getenv('ADMIN_API_KEY')
         )
 
     def validate(self):

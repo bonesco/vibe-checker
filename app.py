@@ -45,7 +45,7 @@ def init_full_app():
             print("ERROR: SLACK_BOT_TOKEN is required!", flush=True)
             return
 
-        print(f"Bot token configured: {config.SLACK_BOT_TOKEN[:15]}...", flush=True)
+        print("Bot token configured", flush=True)
 
         # Initialize database
         print("Initializing database...", flush=True)

@@ -1,6 +1,6 @@
 """Feedback response model"""
 
-from sqlalchemy import Column, Integer, String, ForeignKey, Date, DateTime, Text
+from sqlalchemy import Column, Integer, String, ForeignKey, Date, DateTime, Text, Index, UniqueConstraint
 from sqlalchemy.orm import relationship
 from datetime import datetime
 from src.models.base import Base
@@ -14,6 +14,14 @@ class FeedbackResponse(Base):
     """
 
     __tablename__ = 'feedback_responses'
+    __table_args__ = (
+        # Prevent duplicate feedback for same client in same week
+        UniqueConstraint('client_id', 'week_ending', name='uq_feedback_client_week'),
+        # Index for week-based queries (dashboard, reports)
+        Index('ix_feedback_response_week', 'week_ending'),
+        # Index for recent responses queries (ORDER BY submitted_at DESC)
+        Index('ix_feedback_response_submitted', 'submitted_at'),
+    )
 
     id = Column(Integer, primary_key=True)
     client_id = Column(Integer, ForeignKey('clients.id', ondelete='CASCADE'), nullable=False, index=True)

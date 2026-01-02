@@ -9,6 +9,7 @@ from src.services.workspace_service import get_bot_token
 from src.blocks.standup_blocks import get_standup_message_blocks, get_standup_confirmation_blocks
 from src.database.session import get_session, db_transaction
 from src.utils.logger import setup_logger
+from src.utils.slack_retry import send_message_with_retry
 
 logger = setup_logger(__name__)
 
@@ -45,11 +46,12 @@ def send_standup_dm(workspace_id: int, client_id: int):
             logger.info(f"Standup already sent to client {client_id} today")
             return
 
-        # Create Slack client and send message
+        # Create Slack client and send message with retry
         slack_client = WebClient(token=bot_token)
         blocks = get_standup_message_blocks(client_id, today)
 
-        response = slack_client.chat_postMessage(
+        response = send_message_with_retry(
+            slack_client,
             channel=client.slack_user_id,
             text="Time for your daily standup!",
             blocks=blocks
@@ -58,9 +60,9 @@ def send_standup_dm(workspace_id: int, client_id: int):
         logger.info(f"Sent standup to {client.slack_user_id} (client_id={client_id}, message_ts={response['ts']})")
 
     except SlackApiError as e:
-        logger.error(f"Slack API error sending standup: {e.response['error']}")
+        logger.error(f"Slack API error sending standup to client {client_id}: {e.response['error']}")
     except Exception as e:
-        logger.error(f"Failed to send standup: {e}")
+        logger.error(f"Failed to send standup to client {client_id}: {e}", exc_info=True)
     finally:
         session.close()
 

@@ -9,6 +9,7 @@ from src.services.workspace_service import get_bot_token, get_workspace_by_id
 from src.blocks.feedback_blocks import get_feedback_message_blocks, get_feedback_confirmation_blocks, get_vibe_channel_feedback_blocks
 from src.database.session import get_session, db_transaction
 from src.utils.logger import setup_logger
+from src.utils.slack_retry import send_message_with_retry
 
 logger = setup_logger(__name__)
 
@@ -48,11 +49,12 @@ def send_feedback_dm(workspace_id: int, client_id: int):
             logger.info(f"Feedback already sent to client {client_id} this week")
             return
 
-        # Create Slack client and send message
+        # Create Slack client and send message with retry
         slack_client = WebClient(token=bot_token)
         blocks = get_feedback_message_blocks(client_id, week_ending)
 
-        response = slack_client.chat_postMessage(
+        response = send_message_with_retry(
+            slack_client,
             channel=client.slack_user_id,
             text="Time for your weekly vibe check!",
             blocks=blocks
@@ -61,9 +63,9 @@ def send_feedback_dm(workspace_id: int, client_id: int):
         logger.info(f"Sent feedback to {client.slack_user_id} (client_id={client_id}, message_ts={response['ts']})")
 
     except SlackApiError as e:
-        logger.error(f"Slack API error sending feedback: {e.response['error']}")
+        logger.error(f"Slack API error sending feedback to client {client_id}: {e.response['error']}")
     except Exception as e:
-        logger.error(f"Failed to send feedback: {e}")
+        logger.error(f"Failed to send feedback to client {client_id}: {e}", exc_info=True)
     finally:
         session.close()
 
@@ -157,7 +159,8 @@ def post_feedback_to_vibe_channel(workspace_id: int, client: Client, response: F
         slack_client = WebClient(token=bot_token)
         blocks = get_vibe_channel_feedback_blocks(client, response)
 
-        result = slack_client.chat_postMessage(
+        result = send_message_with_retry(
+            slack_client,
             channel=workspace.vibe_check_channel_id,
             text=f"Weekly feedback from {client.display_name or client.slack_user_id}",
             blocks=blocks

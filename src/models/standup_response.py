@@ -1,6 +1,6 @@
 """Standup response model"""
 
-from sqlalchemy import Column, Integer, String, ForeignKey, Date, DateTime, Text
+from sqlalchemy import Column, Integer, String, ForeignKey, Date, DateTime, Text, Index, UniqueConstraint
 from sqlalchemy.orm import relationship
 from datetime import datetime
 from src.models.base import Base
@@ -14,6 +14,14 @@ class StandupResponse(Base):
     """
 
     __tablename__ = 'standup_responses'
+    __table_args__ = (
+        # Prevent duplicate standups for same client on same day
+        UniqueConstraint('client_id', 'scheduled_date', name='uq_standup_client_date'),
+        # Index for date-based queries (dashboard, reports)
+        Index('ix_standup_response_date', 'scheduled_date'),
+        # Index for recent responses queries (ORDER BY submitted_at DESC)
+        Index('ix_standup_response_submitted', 'submitted_at'),
+    )
 
     id = Column(Integer, primary_key=True)
     client_id = Column(Integer, ForeignKey('clients.id', ondelete='CASCADE'), nullable=False, index=True)

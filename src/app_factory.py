@@ -69,28 +69,82 @@ def create_flask_app(slack_app: App) -> Flask:
     @flask_app.route("/", methods=["GET"])
     def home():
         """Home page"""
-        return """
-        <html>
-            <head>
-                <title>Vibe Check - Slack App</title>
-                <style>
-                    body {
-                        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-                        max-width: 600px;
-                        margin: 100px auto;
-                        padding: 20px;
-                        text-align: center;
-                    }
-                    h1 { color: #333; }
-                    p { color: #666; }
-                </style>
-            </head>
-            <body>
-                <h1>Vibe Check</h1>
-                <p>Slack app is running. Use /vibe-help in Slack to get started.</p>
-            </body>
-        </html>
-        """
+        return """<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VIBE CHECK</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
+            background: #fff;
+            color: #000;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 2rem;
+        }
+        .container {
+            max-width: 480px;
+            margin: 0 auto;
+        }
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            margin-bottom: 2rem;
+            line-height: 1;
+        }
+        .status {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: #000;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .status::before {
+            content: '';
+            width: 6px;
+            height: 6px;
+            background: #000;
+            display: inline-block;
+        }
+        .divider {
+            width: 100%;
+            height: 1px;
+            background: #000;
+            margin: 2rem 0;
+        }
+        .command {
+            font-size: 0.875rem;
+            color: #666;
+        }
+        .command code {
+            background: #f5f5f5;
+            padding: 0.25rem 0.5rem;
+            border: 1px solid #e0e0e0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <p class="status">System Active</p>
+        <h1>VIBE CHECK</h1>
+        <div class="divider"></div>
+        <p class="command">Run <code>/vibe-help</code> in Slack</p>
+    </div>
+</body>
+</html>"""
 
     logger.info("Flask app configured")
     return flask_app

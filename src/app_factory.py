@@ -92,102 +92,117 @@ DASHBOARD_HTML = """
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>VIBE CHECK — ADMIN</title>
+    <title>Vibe Check</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
-            font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
-            background: #fff;
-            color: #000;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            background: #0a0a0a;
+            color: #fff;
             line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
         }
-        .container { max-width: 1200px; margin: 0 auto; padding: 2rem; }
+        .container { max-width: 1400px; margin: 0 auto; padding: 24px; }
 
         /* Header */
         header {
-            background: #000;
-            color: #fff;
-            padding: 1rem 0;
-            position: sticky;
-            top: 0;
-            z-index: 100;
+            padding: 20px 24px;
+            border-bottom: 1px solid #1a1a1a;
         }
         .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 2rem;
+        }
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .logo-icon {
+            width: 32px;
+            height: 32px;
+            background: #fff;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .logo-icon span {
+            color: #000;
+            font-weight: 700;
+            font-size: 16px;
         }
         header h1 {
-            font-size: 0.875rem;
-            font-weight: 500;
-            letter-spacing: 0.1em;
-            text-transform: uppercase;
+            font-size: 16px;
+            font-weight: 600;
         }
-        .header-actions { display: flex; gap: 1rem; align-items: center; }
+        .header-actions {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+        }
         .auto-refresh {
             display: flex;
             align-items: center;
-            gap: 0.5rem;
-            font-size: 0.75rem;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
+            gap: 8px;
+            font-size: 13px;
+            color: #888;
         }
-        .auto-refresh input { accent-color: #fff; }
+        .auto-refresh input { accent-color: #10b981; }
 
         /* Stats */
         .stats {
             display: grid;
-            grid-template-columns: repeat(6, 1fr);
-            gap: 1px;
-            background: #000;
-            border: 1px solid #000;
-            margin-bottom: 2rem;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-bottom: 24px;
         }
         .stat-card {
-            background: #fff;
-            padding: 1.5rem;
+            background: #141414;
+            border-radius: 12px;
+            padding: 20px;
         }
         .stat-card .label {
-            font-size: 0.625rem;
+            font-size: 12px;
             text-transform: uppercase;
-            letter-spacing: 0.1em;
+            letter-spacing: 0.05em;
             color: #666;
-            margin-bottom: 0.5rem;
+            margin-bottom: 8px;
         }
         .stat-card .value {
-            font-size: 2rem;
-            font-weight: 700;
+            font-size: 32px;
+            font-weight: 600;
             letter-spacing: -0.02em;
         }
         .stat-card .subtext {
-            font-size: 0.625rem;
-            color: #999;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            margin-top: 0.25rem;
+            font-size: 12px;
+            color: #666;
+            margin-top: 4px;
         }
 
         /* Cards */
         .card {
-            border: 1px solid #000;
-            margin-bottom: 2rem;
+            background: #141414;
+            border-radius: 12px;
+            margin-bottom: 24px;
+            overflow: hidden;
         }
         .card-header {
-            padding: 1rem 1.5rem;
-            border-bottom: 1px solid #000;
+            padding: 16px 20px;
+            border-bottom: 1px solid #1f1f1f;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            background: #fafafa;
         }
         .card-header h2 {
-            font-size: 0.75rem;
-            font-weight: 600;
+            font-size: 14px;
+            font-weight: 500;
             text-transform: uppercase;
-            letter-spacing: 0.1em;
+            letter-spacing: 0.05em;
+            color: #888;
         }
         .card-body { padding: 0; }
 
@@ -195,145 +210,167 @@ DASHBOARD_HTML = """
         .grid-2 {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
-            gap: 2rem;
+            gap: 24px;
         }
 
         /* Table */
         table { width: 100%; border-collapse: collapse; }
         th, td {
-            padding: 1rem 1.5rem;
+            padding: 14px 20px;
             text-align: left;
-            border-bottom: 1px solid #e0e0e0;
-            font-size: 0.8125rem;
+            border-bottom: 1px solid #1f1f1f;
+            font-size: 14px;
         }
         th {
             font-weight: 500;
-            font-size: 0.625rem;
+            font-size: 11px;
             text-transform: uppercase;
-            letter-spacing: 0.1em;
+            letter-spacing: 0.05em;
             color: #666;
-            background: #fafafa;
         }
         tr:last-child td { border-bottom: none; }
-        tr:hover { background: #fafafa; }
+        tr:hover { background: #1a1a1a; }
 
         /* Badges */
         .badge {
             display: inline-block;
-            padding: 0.25rem 0.5rem;
-            font-size: 0.625rem;
+            padding: 4px 10px;
+            font-size: 11px;
             font-weight: 500;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            border: 1px solid currentColor;
+            border-radius: 100px;
         }
-        .badge-active { color: #000; }
-        .badge-paused { color: #666; background: #f5f5f5; }
-        .badge-standup { color: #000; }
-        .badge-vibe { color: #666; }
+        .badge-active { background: #052e16; color: #4ade80; }
+        .badge-paused { background: #1c1917; color: #a8a29e; }
+        .badge-standup { background: #172554; color: #60a5fa; }
+        .badge-vibe { background: #3b0764; color: #c084fc; }
 
         /* Buttons */
         .btn {
             display: inline-block;
-            padding: 0.5rem 1rem;
-            border: 1px solid #000;
-            background: #fff;
-            color: #000;
+            padding: 8px 14px;
+            border: 1px solid #333;
+            border-radius: 8px;
+            background: transparent;
+            color: #fff;
             font-family: inherit;
-            font-size: 0.75rem;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
+            font-size: 13px;
+            font-weight: 500;
             text-decoration: none;
             cursor: pointer;
-            transition: all 0.1s;
+            transition: all 0.15s;
         }
-        .btn:hover { background: #000; color: #fff; }
-        .btn-sm { padding: 0.25rem 0.5rem; font-size: 0.625rem; }
+        .btn:hover { background: #222; border-color: #444; }
+        .btn-sm { padding: 6px 10px; font-size: 12px; }
 
         /* Client */
-        .client-info { display: flex; align-items: center; gap: 0.75rem; }
+        .client-info { display: flex; align-items: center; gap: 12px; }
         .client-avatar {
-            width: 2rem;
-            height: 2rem;
-            background: #000;
-            color: #fff;
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-weight: 500;
-            font-size: 0.75rem;
+            font-weight: 600;
+            font-size: 14px;
         }
         .client-name { font-weight: 500; }
-        .client-meta { font-size: 0.75rem; color: #666; }
+        .client-meta { font-size: 13px; color: #666; }
 
         /* Schedule */
         .schedule-item {
-            font-size: 0.75rem;
-            color: #666;
-            margin-bottom: 0.25rem;
+            font-size: 13px;
+            color: #888;
+            margin-bottom: 4px;
         }
         .schedule-item:last-child { margin-bottom: 0; }
 
         /* Empty */
         .empty-state {
-            padding: 3rem;
+            padding: 48px 24px;
             text-align: center;
             color: #666;
-            font-size: 0.875rem;
+            font-size: 14px;
         }
         .empty-state code {
-            background: #f5f5f5;
-            padding: 0.25rem 0.5rem;
-            border: 1px solid #e0e0e0;
+            background: #1f1f1f;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 13px;
         }
 
         /* Tabs */
-        .tabs { display: flex; gap: 0; }
+        .tabs { display: flex; gap: 4px; }
         .tab {
-            padding: 0.5rem 1rem;
+            padding: 6px 12px;
             border: none;
             background: transparent;
+            border-radius: 6px;
             font-family: inherit;
-            font-size: 0.625rem;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
+            font-size: 13px;
+            font-weight: 500;
             cursor: pointer;
             color: #666;
+            transition: all 0.15s;
         }
-        .tab:hover { color: #000; }
-        .tab.active { color: #000; border-bottom: 2px solid #000; }
+        .tab:hover { color: #fff; background: #1f1f1f; }
+        .tab.active { color: #fff; background: #262626; }
 
-        /* Footer */
-        .footer {
-            text-align: center;
-            padding: 2rem;
-            font-size: 0.75rem;
-            color: #999;
-            text-transform: uppercase;
-            letter-spacing: 0.1em;
+        /* Response Card */
+        .response-card {
+            background: #1a1a1a;
+            border-radius: 8px;
+            padding: 16px;
+            margin: 16px;
+            margin-top: 0;
         }
+        .response-card:first-child { margin-top: 16px; }
+        .response-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        .response-label {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #666;
+            margin-bottom: 4px;
+        }
+        .response-content {
+            font-size: 14px;
+            color: #ccc;
+            line-height: 1.6;
+        }
+        .response-section { margin-bottom: 12px; }
+        .response-section:last-child { margin-bottom: 0; }
 
         /* Responsive */
         @media (max-width: 1024px) {
-            .stats { grid-template-columns: repeat(3, 1fr); }
+            .stats { grid-template-columns: repeat(2, 1fr); }
             .grid-2 { grid-template-columns: 1fr; }
         }
         @media (max-width: 640px) {
-            .stats { grid-template-columns: repeat(2, 1fr); }
-            .header-content { flex-direction: column; gap: 1rem; }
+            .stats { grid-template-columns: 1fr; }
+            .header-content { flex-direction: column; gap: 16px; }
         }
     </style>
 </head>
 <body>
     <header>
         <div class="header-content">
-            <h1>Vibe Check — Admin</h1>
+            <div class="logo">
+                <div class="logo-icon"><span>V</span></div>
+                <h1>Vibe Check</h1>
+            </div>
             <div class="header-actions">
                 <label class="auto-refresh">
                     <input type="checkbox" id="autoRefresh" onchange="toggleAutoRefresh()">
                     Auto-refresh
                 </label>
-                <a href="/admin?key={{ request.args.get('key', '') }}" class="btn btn-sm" style="background:#fff;color:#000">Refresh</a>
+                <a href="/admin?key={{ request.args.get('key', '') }}" class="btn btn-sm">Refresh</a>
             </div>
         </div>
     </header>
@@ -341,7 +378,7 @@ DASHBOARD_HTML = """
     <div class="container">
         <div class="stats">
             <div class="stat-card">
-                <div class="label">Clients</div>
+                <div class="label">Total Clients</div>
                 <div class="value">{{ stats.total_clients }}</div>
             </div>
             <div class="stat-card">
@@ -349,23 +386,14 @@ DASHBOARD_HTML = """
                 <div class="value">{{ stats.active_clients }}</div>
             </div>
             <div class="stat-card">
-                <div class="label">Scheduled</div>
-                <div class="value">{{ stats.scheduled_jobs }}</div>
-            </div>
-            <div class="stat-card">
-                <div class="label">Today</div>
-                <div class="value">{{ stats.responses_today }}</div>
-                <div class="subtext">Responses</div>
-            </div>
-            <div class="stat-card">
-                <div class="label">Feeling</div>
+                <div class="label">Avg Feeling</div>
                 <div class="value">{{ '%.1f' | format(stats.avg_feeling) if stats.avg_feeling else '—' }}</div>
-                <div class="subtext">7-Day Avg</div>
+                <div class="subtext">7-day average</div>
             </div>
             <div class="stat-card">
                 <div class="label">Satisfaction</div>
                 <div class="value">{{ '%.1f' | format(stats.avg_satisfaction) if stats.avg_satisfaction else '—' }}</div>
-                <div class="subtext">7-Day Avg</div>
+                <div class="subtext">7-day average</div>
             </div>
         </div>
 
@@ -385,7 +413,7 @@ DASHBOARD_HTML = """
                         <tr>
                             <th>Client</th>
                             <th>Schedule</th>
-                            <th>Next</th>
+                            <th>Next Run</th>
                             <th>Status</th>
                             <th>Actions</th>
                         </tr>
@@ -410,17 +438,17 @@ DASHBOARD_HTML = """
                                 <div class="schedule-item">Fridays @ {{ client.vibe_check_time }}</div>
                                 {% endif %}
                                 {% if not client.standup_schedule and not client.vibe_check_enabled %}
-                                <span style="color:#999">—</span>
+                                <span style="color:#444">—</span>
                                 {% endif %}
                             </td>
-                            <td>{{ client.next_run if client.next_run else '—' }}</td>
+                            <td style="color:#888">{{ client.next_run if client.next_run else '—' }}</td>
                             <td>
                                 {% if client.is_paused %}
                                 <span class="badge badge-paused">Paused</span>
                                 {% elif client.is_active %}
                                 <span class="badge badge-active">Active</span>
                                 {% else %}
-                                <span class="badge">Inactive</span>
+                                <span class="badge badge-paused">Inactive</span>
                                 {% endif %}
                             </td>
                             <td>
@@ -437,7 +465,7 @@ DASHBOARD_HTML = """
                 </table>
                 {% else %}
                 <div class="empty-state">
-                    <p>No clients. Use <code>/vibe-add-client</code> in Slack.</p>
+                    <p>No clients yet. Use <code>/vibe-add-client</code> in Slack to add clients.</p>
                 </div>
                 {% endif %}
             </div>
@@ -462,10 +490,10 @@ DASHBOARD_HTML = """
                         <tbody>
                             {% for response in responses %}
                             <tr>
-                                <td style="font-weight:500">{{ response.client_name }}</td>
-                                <td><span class="badge badge-{{ 'standup' if response.type == 'standup' else 'vibe' }}">{{ response.type | upper }}</span></td>
+                                <td>{{ response.client_name }}</td>
+                                <td><span class="badge badge-{{ 'standup' if response.type == 'standup' else 'vibe' }}">{{ response.type }}</span></td>
                                 <td>{{ response.rating ~ '/5' if response.rating else '—' }}</td>
-                                <td>{{ response.date }}</td>
+                                <td style="color:#888">{{ response.date }}</td>
                             </tr>
                             {% endfor %}
                         </tbody>
@@ -489,15 +517,15 @@ DASHBOARD_HTML = """
                             <tr>
                                 <th>Type</th>
                                 <th>Next Run</th>
-                                <th>Schedule</th>
+                                <th>Trigger</th>
                             </tr>
                         </thead>
                         <tbody>
                             {% for job in jobs %}
                             <tr>
-                                <td><span class="badge badge-{{ 'standup' if 'standup' in job.id else 'vibe' }}">{{ 'STANDUP' if 'standup' in job.id else 'VIBE' }}</span></td>
+                                <td><span class="badge badge-{{ 'standup' if 'standup' in job.id else 'vibe' }}">{{ 'standup' if 'standup' in job.id else 'vibe' }}</span></td>
                                 <td>{{ job.next_run_formatted or '—' }}</td>
-                                <td style="color:#666">{{ job.trigger }}</td>
+                                <td style="color:#666;font-size:12px">{{ job.trigger }}</td>
                             </tr>
                             {% endfor %}
                         </tbody>
@@ -514,43 +542,43 @@ DASHBOARD_HTML = """
         {% if latest_responses %}
         <div class="card">
             <div class="card-header">
-                <h2>Latest Details</h2>
+                <h2>Latest Responses</h2>
             </div>
-            <div class="card-body" style="padding:1.5rem">
+            <div class="card-body">
                 {% for res in latest_responses %}
-                <div style="border:1px solid #e0e0e0;padding:1rem;margin-bottom:1rem{% if loop.last %};margin-bottom:0{% endif %}">
-                    <div style="display:flex;justify-content:space-between;margin-bottom:0.75rem">
+                <div class="response-card">
+                    <div class="response-header">
                         <strong>{{ res.client_name }}</strong>
-                        <span class="badge badge-{{ 'standup' if res.type == 'standup' else 'vibe' }}">{{ res.type | upper }}</span>
+                        <span class="badge badge-{{ 'standup' if res.type == 'standup' else 'vibe' }}">{{ res.type }}</span>
                     </div>
                     {% if res.accomplishments %}
-                    <div style="margin-bottom:0.5rem">
-                        <div style="font-size:0.625rem;text-transform:uppercase;letter-spacing:0.1em;color:#666;margin-bottom:0.25rem">Completed</div>
-                        <div style="font-size:0.8125rem">{{ res.accomplishments }}</div>
+                    <div class="response-section">
+                        <div class="response-label">Completed</div>
+                        <div class="response-content">{{ res.accomplishments }}</div>
                     </div>
                     {% endif %}
                     {% if res.working_on %}
-                    <div style="margin-bottom:0.5rem">
-                        <div style="font-size:0.625rem;text-transform:uppercase;letter-spacing:0.1em;color:#666;margin-bottom:0.25rem">In Progress</div>
-                        <div style="font-size:0.8125rem">{{ res.working_on }}</div>
+                    <div class="response-section">
+                        <div class="response-label">In Progress</div>
+                        <div class="response-content">{{ res.working_on }}</div>
                     </div>
                     {% endif %}
                     {% if res.blockers %}
-                    <div style="margin-bottom:0.5rem">
-                        <div style="font-size:0.625rem;text-transform:uppercase;letter-spacing:0.1em;color:#666;margin-bottom:0.25rem">Blockers</div>
-                        <div style="font-size:0.8125rem">{{ res.blockers }}</div>
+                    <div class="response-section">
+                        <div class="response-label">Blockers</div>
+                        <div class="response-content">{{ res.blockers }}</div>
                     </div>
                     {% endif %}
                     {% if res.feeling_text %}
-                    <div style="margin-bottom:0.5rem">
-                        <div style="font-size:0.625rem;text-transform:uppercase;letter-spacing:0.1em;color:#666;margin-bottom:0.25rem">Notes</div>
-                        <div style="font-size:0.8125rem">{{ res.feeling_text }}</div>
+                    <div class="response-section">
+                        <div class="response-label">Notes</div>
+                        <div class="response-content">{{ res.feeling_text }}</div>
                     </div>
                     {% endif %}
                     {% if res.improvements %}
-                    <div>
-                        <div style="font-size:0.625rem;text-transform:uppercase;letter-spacing:0.1em;color:#666;margin-bottom:0.25rem">Improvements</div>
-                        <div style="font-size:0.8125rem">{{ res.improvements }}</div>
+                    <div class="response-section">
+                        <div class="response-label">Improvements</div>
+                        <div class="response-content">{{ res.improvements }}</div>
                     </div>
                     {% endif %}
                 </div>
@@ -558,8 +586,6 @@ DASHBOARD_HTML = """
             </div>
         </div>
         {% endif %}
-
-        <div class="footer">System Active</div>
     </div>
 
     <script>

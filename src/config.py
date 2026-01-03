@@ -31,6 +31,7 @@ class Config:
     PORT: int = 8000
     LOG_LEVEL: str = "INFO"
     RAILWAY_STATIC_URL: Optional[str] = None
+    ADMIN_API_KEY: Optional[str] = None
 
     # Optional - Feature Flags
     ENABLE_REMINDERS: bool = True
@@ -57,6 +58,7 @@ class Config:
             PORT=int(os.getenv('PORT', '8000')),
             LOG_LEVEL=os.getenv('LOG_LEVEL', 'INFO'),
             RAILWAY_STATIC_URL=os.getenv('RAILWAY_STATIC_URL'),
+            ADMIN_API_KEY=os.getenv('ADMIN_API_KEY'),
 
             # Features
             ENABLE_REMINDERS=os.getenv('ENABLE_REMINDERS', 'true').lower() == 'true',

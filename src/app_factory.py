@@ -97,20 +97,21 @@ DASHBOARD_HTML = """
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
-            background: #0a0a0a;
-            color: #fff;
+            background: #f8f8f8;
+            color: #111;
             line-height: 1.5;
             -webkit-font-smoothing: antialiased;
         }
-        .container { max-width: 1400px; margin: 0 auto; padding: 24px; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 32px; }
 
         /* Header */
         header {
-            padding: 20px 24px;
-            border-bottom: 1px solid #1a1a1a;
+            background: #fff;
+            border-bottom: 1px solid #eee;
+            padding: 16px 32px;
         }
         .header-content {
-            max-width: 1400px;
+            max-width: 1200px;
             margin: 0 auto;
             display: flex;
             justify-content: space-between;
@@ -119,25 +120,26 @@ DASHBOARD_HTML = """
         .logo {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 10px;
         }
         .logo-icon {
-            width: 32px;
-            height: 32px;
-            background: #fff;
-            border-radius: 8px;
+            width: 28px;
+            height: 28px;
+            background: #111;
+            border-radius: 6px;
             display: flex;
             align-items: center;
             justify-content: center;
         }
         .logo-icon span {
-            color: #000;
-            font-weight: 700;
-            font-size: 16px;
+            color: #fff;
+            font-weight: 600;
+            font-size: 14px;
         }
         header h1 {
-            font-size: 16px;
+            font-size: 15px;
             font-weight: 600;
+            color: #111;
         }
         .header-actions {
             display: flex;
@@ -147,62 +149,66 @@ DASHBOARD_HTML = """
         .auto-refresh {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
             font-size: 13px;
-            color: #888;
+            color: #666;
         }
-        .auto-refresh input { accent-color: #10b981; }
+        .auto-refresh input { accent-color: #111; }
 
         /* Stats */
         .stats {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
-            gap: 16px;
-            margin-bottom: 24px;
+            gap: 20px;
+            margin-bottom: 32px;
         }
         .stat-card {
-            background: #141414;
+            background: #fff;
             border-radius: 12px;
-            padding: 20px;
+            padding: 24px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.04);
         }
         .stat-card .label {
-            font-size: 12px;
+            font-size: 11px;
             text-transform: uppercase;
-            letter-spacing: 0.05em;
-            color: #666;
+            letter-spacing: 0.06em;
+            color: #888;
             margin-bottom: 8px;
+            font-weight: 500;
         }
         .stat-card .value {
-            font-size: 32px;
+            font-size: 36px;
             font-weight: 600;
-            letter-spacing: -0.02em;
+            letter-spacing: -0.03em;
+            color: #111;
         }
         .stat-card .subtext {
             font-size: 12px;
-            color: #666;
+            color: #999;
             margin-top: 4px;
         }
 
         /* Cards */
         .card {
-            background: #141414;
+            background: #fff;
             border-radius: 12px;
             margin-bottom: 24px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.04);
             overflow: hidden;
         }
         .card-header {
-            padding: 16px 20px;
-            border-bottom: 1px solid #1f1f1f;
+            padding: 20px 24px;
+            border-bottom: 1px solid #f0f0f0;
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
         .card-header h2 {
-            font-size: 14px;
-            font-weight: 500;
+            font-size: 13px;
+            font-weight: 600;
             text-transform: uppercase;
-            letter-spacing: 0.05em;
-            color: #888;
+            letter-spacing: 0.04em;
+            color: #111;
         }
         .card-body { padding: 0; }
 
@@ -216,9 +222,9 @@ DASHBOARD_HTML = """
         /* Table */
         table { width: 100%; border-collapse: collapse; }
         th, td {
-            padding: 14px 20px;
+            padding: 16px 24px;
             text-align: left;
-            border-bottom: 1px solid #1f1f1f;
+            border-bottom: 1px solid #f5f5f5;
             font-size: 14px;
         }
         th {
@@ -226,40 +232,41 @@ DASHBOARD_HTML = """
             font-size: 11px;
             text-transform: uppercase;
             letter-spacing: 0.05em;
-            color: #666;
+            color: #888;
         }
         tr:last-child td { border-bottom: none; }
-        tr:hover { background: #1a1a1a; }
+        tr:hover { background: #fafafa; }
 
         /* Badges */
         .badge {
             display: inline-block;
-            padding: 4px 10px;
+            padding: 5px 10px;
             font-size: 11px;
             font-weight: 500;
-            border-radius: 100px;
+            border-radius: 6px;
         }
-        .badge-active { background: #052e16; color: #4ade80; }
-        .badge-paused { background: #1c1917; color: #a8a29e; }
-        .badge-standup { background: #172554; color: #60a5fa; }
-        .badge-vibe { background: #3b0764; color: #c084fc; }
+        .badge-active { background: #e8f5e9; color: #2e7d32; }
+        .badge-paused { background: #f5f5f5; color: #666; }
+        .badge-standup { background: #e3f2fd; color: #1565c0; }
+        .badge-vibe { background: #f3e5f5; color: #7b1fa2; }
 
         /* Buttons */
         .btn {
             display: inline-block;
             padding: 8px 14px;
-            border: 1px solid #333;
+            border: 1px solid #e0e0e0;
             border-radius: 8px;
-            background: transparent;
-            color: #fff;
+            background: #fff;
+            color: #333;
             font-family: inherit;
             font-size: 13px;
             font-weight: 500;
             text-decoration: none;
             cursor: pointer;
             transition: all 0.15s;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.04);
         }
-        .btn:hover { background: #222; border-color: #444; }
+        .btn:hover { background: #fafafa; border-color: #ccc; }
         .btn-sm { padding: 6px 10px; font-size: 12px; }
 
         /* Client */
@@ -267,21 +274,22 @@ DASHBOARD_HTML = """
         .client-avatar {
             width: 36px;
             height: 36px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #111;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             font-weight: 600;
-            font-size: 14px;
+            font-size: 13px;
+            color: #fff;
         }
-        .client-name { font-weight: 500; }
-        .client-meta { font-size: 13px; color: #666; }
+        .client-name { font-weight: 500; color: #111; }
+        .client-meta { font-size: 13px; color: #888; }
 
         /* Schedule */
         .schedule-item {
             font-size: 13px;
-            color: #888;
+            color: #666;
             margin-bottom: 4px;
         }
         .schedule-item:last-child { margin-bottom: 0; }
@@ -290,20 +298,21 @@ DASHBOARD_HTML = """
         .empty-state {
             padding: 48px 24px;
             text-align: center;
-            color: #666;
+            color: #888;
             font-size: 14px;
         }
         .empty-state code {
-            background: #1f1f1f;
+            background: #f5f5f5;
             padding: 4px 8px;
             border-radius: 4px;
             font-size: 13px;
+            color: #555;
         }
 
         /* Tabs */
         .tabs { display: flex; gap: 4px; }
         .tab {
-            padding: 6px 12px;
+            padding: 7px 14px;
             border: none;
             background: transparent;
             border-radius: 6px;
@@ -311,40 +320,42 @@ DASHBOARD_HTML = """
             font-size: 13px;
             font-weight: 500;
             cursor: pointer;
-            color: #666;
+            color: #888;
             transition: all 0.15s;
         }
-        .tab:hover { color: #fff; background: #1f1f1f; }
-        .tab.active { color: #fff; background: #262626; }
+        .tab:hover { color: #111; background: #f5f5f5; }
+        .tab.active { color: #111; background: #f0f0f0; }
 
         /* Response Card */
         .response-card {
-            background: #1a1a1a;
-            border-radius: 8px;
-            padding: 16px;
-            margin: 16px;
+            background: #fafafa;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 24px;
             margin-top: 0;
         }
-        .response-card:first-child { margin-top: 16px; }
+        .response-card:first-child { margin-top: 20px; }
         .response-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 12px;
+            margin-bottom: 16px;
         }
+        .response-header strong { color: #111; }
         .response-label {
-            font-size: 11px;
+            font-size: 10px;
             text-transform: uppercase;
-            letter-spacing: 0.05em;
-            color: #666;
-            margin-bottom: 4px;
+            letter-spacing: 0.06em;
+            color: #999;
+            margin-bottom: 6px;
+            font-weight: 500;
         }
         .response-content {
             font-size: 14px;
-            color: #ccc;
+            color: #444;
             line-height: 1.6;
         }
-        .response-section { margin-bottom: 12px; }
+        .response-section { margin-bottom: 16px; }
         .response-section:last-child { margin-bottom: 0; }
 
         /* Responsive */
@@ -355,6 +366,7 @@ DASHBOARD_HTML = """
         @media (max-width: 640px) {
             .stats { grid-template-columns: 1fr; }
             .header-content { flex-direction: column; gap: 16px; }
+            .container { padding: 20px; }
         }
     </style>
 </head>
@@ -378,7 +390,7 @@ DASHBOARD_HTML = """
     <div class="container">
         <div class="stats">
             <div class="stat-card">
-                <div class="label">Total Clients</div>
+                <div class="label">Clients</div>
                 <div class="value">{{ stats.total_clients }}</div>
             </div>
             <div class="stat-card">
@@ -438,7 +450,7 @@ DASHBOARD_HTML = """
                                 <div class="schedule-item">Fridays @ {{ client.vibe_check_time }}</div>
                                 {% endif %}
                                 {% if not client.standup_schedule and not client.vibe_check_enabled %}
-                                <span style="color:#444">—</span>
+                                <span style="color:#ccc">—</span>
                                 {% endif %}
                             </td>
                             <td style="color:#888">{{ client.next_run if client.next_run else '—' }}</td>
@@ -465,7 +477,7 @@ DASHBOARD_HTML = """
                 </table>
                 {% else %}
                 <div class="empty-state">
-                    <p>No clients yet. Use <code>/vibe-add-client</code> in Slack to add clients.</p>
+                    <p>No clients yet. Use <code>/vibe-add-client</code> in Slack.</p>
                 </div>
                 {% endif %}
             </div>
@@ -525,7 +537,7 @@ DASHBOARD_HTML = """
                             <tr>
                                 <td><span class="badge badge-{{ 'standup' if 'standup' in job.id else 'vibe' }}">{{ 'standup' if 'standup' in job.id else 'vibe' }}</span></td>
                                 <td>{{ job.next_run_formatted or '—' }}</td>
-                                <td style="color:#666;font-size:12px">{{ job.trigger }}</td>
+                                <td style="color:#888;font-size:12px">{{ job.trigger }}</td>
                             </tr>
                             {% endfor %}
                         </tbody>

@@ -15,7 +15,7 @@ def get_standup_message_blocks(client_id: int, scheduled_date: date) -> List[Dic
     Returns:
         List of Block Kit blocks
     """
-    date_str = scheduled_date.strftime('%A, %B %d')
+    date_str = scheduled_date.strftime('%A, %B %d, %Y')
     date_key = scheduled_date.isoformat()
 
     return [
@@ -23,17 +23,15 @@ def get_standup_message_blocks(client_id: int, scheduled_date: date) -> List[Dic
             "type": "header",
             "text": {
                 "type": "plain_text",
-                "text": "DAILY CHECK-IN"
+                "text": "📋 Daily Standup Check-in"
             }
         },
         {
-            "type": "context",
-            "elements": [
-                {
-                    "type": "plain_text",
-                    "text": date_str.upper()
-                }
-            ]
+            "type": "section",
+            "text": {
+                "type": "mrkdwn",
+                "text": f"Good morning! Time for your standup for *{date_str}*"
+            }
         },
         {
             "type": "divider"
@@ -47,12 +45,12 @@ def get_standup_message_blocks(client_id: int, scheduled_date: date) -> List[Dic
                 "multiline": True,
                 "placeholder": {
                     "type": "plain_text",
-                    "text": "What did you accomplish?"
+                    "text": "What did you accomplish yesterday/last week?"
                 }
             },
             "label": {
                 "type": "plain_text",
-                "text": "COMPLETED"
+                "text": "✅ Accomplishments"
             }
         },
         {
@@ -64,12 +62,12 @@ def get_standup_message_blocks(client_id: int, scheduled_date: date) -> List[Dic
                 "multiline": True,
                 "placeholder": {
                     "type": "plain_text",
-                    "text": "What are you focusing on?"
+                    "text": "What are you working on today/this week?"
                 }
             },
             "label": {
                 "type": "plain_text",
-                "text": "IN PROGRESS"
+                "text": "🎯 Today's Focus"
             }
         },
         {
@@ -82,14 +80,13 @@ def get_standup_message_blocks(client_id: int, scheduled_date: date) -> List[Dic
                 "optional": True,
                 "placeholder": {
                     "type": "plain_text",
-                    "text": "Any blockers?"
+                    "text": "Any blockers or concerns?"
                 }
             },
             "label": {
                 "type": "plain_text",
-                "text": "BLOCKED"
-            },
-            "optional": True
+                "text": "🚧 Blockers (optional)"
+            }
         },
         {
             "type": "actions",
@@ -99,7 +96,7 @@ def get_standup_message_blocks(client_id: int, scheduled_date: date) -> List[Dic
                     "type": "button",
                     "text": {
                         "type": "plain_text",
-                        "text": "Submit"
+                        "text": "Submit Standup"
                     },
                     "style": "primary",
                     "action_id": f"submit_standup",
@@ -109,7 +106,7 @@ def get_standup_message_blocks(client_id: int, scheduled_date: date) -> List[Dic
                     "type": "button",
                     "text": {
                         "type": "plain_text",
-                        "text": "Skip"
+                        "text": "Skip Today"
                     },
                     "action_id": f"skip_standup",
                     "value": f"{client_id}|{date_key}"
@@ -132,20 +129,34 @@ def get_standup_confirmation_blocks(submitted: bool = True) -> List[Dict[str, An
     if submitted:
         return [
             {
+                "type": "header",
+                "text": {
+                    "type": "plain_text",
+                    "text": "✅ Standup Submitted!"
+                }
+            },
+            {
                 "type": "section",
                 "text": {
                     "type": "mrkdwn",
-                    "text": "*SUBMITTED* — Your update has been recorded."
+                    "text": "Thanks for your update! Your standup has been recorded."
                 }
             }
         ]
     else:
         return [
             {
+                "type": "header",
+                "text": {
+                    "type": "plain_text",
+                    "text": "👍 Standup Skipped"
+                }
+            },
+            {
                 "type": "section",
                 "text": {
                     "type": "mrkdwn",
-                    "text": "*SKIPPED* — Noted for today."
+                    "text": "No problem! We've noted that you skipped today's standup."
                 }
             }
         ]

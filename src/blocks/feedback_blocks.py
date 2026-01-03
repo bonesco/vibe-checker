@@ -25,17 +25,15 @@ def get_feedback_message_blocks(client_id: int, week_ending: date) -> List[Dict[
             "type": "header",
             "text": {
                 "type": "plain_text",
-                "text": "WEEKLY REVIEW"
+                "text": "🎭 Weekly Vibe Check"
             }
         },
         {
-            "type": "context",
-            "elements": [
-                {
-                    "type": "plain_text",
-                    "text": f"WEEK ENDING {week_str.upper()}"
-                }
-            ]
+            "type": "section",
+            "text": {
+                "type": "mrkdwn",
+                "text": f"Hey! Let's check in on how this week went (ending {week_str})"
+            }
         },
         {
             "type": "divider"
@@ -52,14 +50,14 @@ def get_feedback_message_blocks(client_id: int, week_ending: date) -> List[Dict[
                 "action_id": "feeling_rating_select",
                 "placeholder": {
                     "type": "plain_text",
-                    "text": "Select"
+                    "text": "Select feeling"
                 },
                 "options": [
-                    {"text": {"type": "plain_text", "text": "5 — Excellent"}, "value": "5"},
-                    {"text": {"type": "plain_text", "text": "4 — Good"}, "value": "4"},
-                    {"text": {"type": "plain_text", "text": "3 — Neutral"}, "value": "3"},
-                    {"text": {"type": "plain_text", "text": "2 — Difficult"}, "value": "2"},
-                    {"text": {"type": "plain_text", "text": "1 — Struggling"}, "value": "1"}
+                    {"text": {"type": "plain_text", "text": "😄 Great"}, "value": "5"},
+                    {"text": {"type": "plain_text", "text": "🙂 Good"}, "value": "4"},
+                    {"text": {"type": "plain_text", "text": "😐 Okay"}, "value": "3"},
+                    {"text": {"type": "plain_text", "text": "😕 Not great"}, "value": "2"},
+                    {"text": {"type": "plain_text", "text": "😞 Struggling"}, "value": "1"}
                 ]
             }
         },
@@ -73,14 +71,13 @@ def get_feedback_message_blocks(client_id: int, week_ending: date) -> List[Dict[
                 "optional": True,
                 "placeholder": {
                     "type": "plain_text",
-                    "text": "Additional context"
+                    "text": "Want to share more about how you're feeling?"
                 }
             },
             "label": {
                 "type": "plain_text",
-                "text": "NOTES"
-            },
-            "optional": True
+                "text": "💭 Additional thoughts (optional)"
+            }
         },
         {
             "type": "input",
@@ -92,14 +89,13 @@ def get_feedback_message_blocks(client_id: int, week_ending: date) -> List[Dict[
                 "optional": True,
                 "placeholder": {
                     "type": "plain_text",
-                    "text": "What could be improved?"
+                    "text": "What could we improve?"
                 }
             },
             "label": {
                 "type": "plain_text",
-                "text": "IMPROVEMENTS"
-            },
-            "optional": True
+                "text": "💡 Suggestions for improvement"
+            }
         },
         {
             "type": "input",
@@ -111,14 +107,13 @@ def get_feedback_message_blocks(client_id: int, week_ending: date) -> List[Dict[
                 "optional": True,
                 "placeholder": {
                     "type": "plain_text",
-                    "text": "Any blockers?"
+                    "text": "Any blockers or concerns?"
                 }
             },
             "label": {
                 "type": "plain_text",
-                "text": "BLOCKERS"
-            },
-            "optional": True
+                "text": "🚧 Blockers (optional)"
+            }
         },
         {
             "type": "section",
@@ -132,14 +127,14 @@ def get_feedback_message_blocks(client_id: int, week_ending: date) -> List[Dict[
                 "action_id": "satisfaction_rating_select",
                 "placeholder": {
                     "type": "plain_text",
-                    "text": "Rate"
+                    "text": "Rate satisfaction"
                 },
                 "options": [
-                    {"text": {"type": "plain_text", "text": "5 — Excellent"}, "value": "5"},
-                    {"text": {"type": "plain_text", "text": "4 — Very Good"}, "value": "4"},
-                    {"text": {"type": "plain_text", "text": "3 — Good"}, "value": "3"},
-                    {"text": {"type": "plain_text", "text": "2 — Fair"}, "value": "2"},
-                    {"text": {"type": "plain_text", "text": "1 — Needs Work"}, "value": "1"}
+                    {"text": {"type": "plain_text", "text": "⭐⭐⭐⭐⭐ Excellent"}, "value": "5"},
+                    {"text": {"type": "plain_text", "text": "⭐⭐⭐⭐ Very Good"}, "value": "4"},
+                    {"text": {"type": "plain_text", "text": "⭐⭐⭐ Good"}, "value": "3"},
+                    {"text": {"type": "plain_text", "text": "⭐⭐ Fair"}, "value": "2"},
+                    {"text": {"type": "plain_text", "text": "⭐ Needs Improvement"}, "value": "1"}
                 ]
             }
         },
@@ -151,7 +146,7 @@ def get_feedback_message_blocks(client_id: int, week_ending: date) -> List[Dict[
                     "type": "button",
                     "text": {
                         "type": "plain_text",
-                        "text": "Submit"
+                        "text": "Submit Feedback"
                     },
                     "style": "primary",
                     "action_id": "submit_feedback",
@@ -171,10 +166,17 @@ def get_feedback_confirmation_blocks() -> List[Dict[str, Any]]:
     """
     return [
         {
+            "type": "header",
+            "text": {
+                "type": "plain_text",
+                "text": "✅ Feedback Submitted!"
+            }
+        },
+        {
             "type": "section",
             "text": {
                 "type": "mrkdwn",
-                "text": "*RECEIVED* — Thank you for your feedback."
+                "text": "Thank you for your feedback! We appreciate you taking the time to share your thoughts."
             }
         }
     ]
@@ -191,17 +193,24 @@ def get_vibe_channel_feedback_blocks(client: Client, response: FeedbackResponse)
     Returns:
         List of Block Kit blocks
     """
-    # Status indicator based on ratings
-    status = "ATTENTION" if response.needs_attention else "OK"
-    feeling_score = f"{response.feeling_rating}/5" if response.feeling_rating else "—"
-    satisfaction_score = f"{response.satisfaction_rating}/5" if response.satisfaction_rating else "—"
+    # Emoji mapping for ratings
+    feeling_emojis = ["😞", "😕", "😐", "🙂", "😄"]
+    feeling_emoji = feeling_emojis[response.feeling_rating - 1] if response.feeling_rating else "❓"
+    satisfaction_stars = "⭐" * (response.satisfaction_rating or 0)
+
+    # Determine alert level
+    alert_emoji = ""
+    if response.needs_attention:
+        alert_emoji = "🚨 "
+    elif response.is_positive:
+        alert_emoji = "✅ "
 
     blocks = [
         {
             "type": "header",
             "text": {
                 "type": "plain_text",
-                "text": f"[{status}] {client.display_name or client.slack_user_id}"
+                "text": f"{alert_emoji}{feeling_emoji} Weekly Feedback from {client.display_name or client.slack_user_id}"
             }
         },
         {
@@ -209,19 +218,19 @@ def get_vibe_channel_feedback_blocks(client: Client, response: FeedbackResponse)
             "fields": [
                 {
                     "type": "mrkdwn",
-                    "text": f"*Feeling:* {feeling_score}"
+                    "text": f"*Feeling:* {feeling_emoji} ({response.feeling_rating or 'N/A'}/5)"
                 },
                 {
                     "type": "mrkdwn",
-                    "text": f"*Satisfaction:* {satisfaction_score}"
+                    "text": f"*Satisfaction:* {satisfaction_stars} ({response.satisfaction_rating or 'N/A'}/5)"
                 },
                 {
                     "type": "mrkdwn",
-                    "text": f"*Week:* {response.week_ending.strftime('%b %d, %Y')}"
+                    "text": f"*Week Ending:* {response.week_ending.strftime('%B %d, %Y')}"
                 },
                 {
                     "type": "mrkdwn",
-                    "text": f"*Submitted:* <!date^{int(response.submitted_at.timestamp())}^{{date_short}} {{time}}|{response.submitted_at}>"
+                    "text": f"*Submitted:* <!date^{int(response.submitted_at.timestamp())}^{{date_short_pretty}} at {{time}}|{response.submitted_at}>"
                 }
             ]
         },
@@ -236,7 +245,7 @@ def get_vibe_channel_feedback_blocks(client: Client, response: FeedbackResponse)
             "type": "section",
             "text": {
                 "type": "mrkdwn",
-                "text": f"*Notes:*\n{response.feeling_text}"
+                "text": f"*Additional Thoughts:*\n{response.feeling_text}"
             }
         })
 
@@ -246,7 +255,7 @@ def get_vibe_channel_feedback_blocks(client: Client, response: FeedbackResponse)
             "type": "section",
             "text": {
                 "type": "mrkdwn",
-                "text": f"*Improvements:*\n{response.improvements}"
+                "text": f"*Suggestions for Improvement:*\n{response.improvements}"
             }
         })
 
@@ -256,7 +265,7 @@ def get_vibe_channel_feedback_blocks(client: Client, response: FeedbackResponse)
             "type": "section",
             "text": {
                 "type": "mrkdwn",
-                "text": f"*Blockers:*\n{response.blockers}"
+                "text": f"*Blockers/Concerns:*\n{response.blockers}"
             }
         })
 
@@ -266,7 +275,7 @@ def get_vibe_channel_feedback_blocks(client: Client, response: FeedbackResponse)
         "elements": [
             {
                 "type": "mrkdwn",
-                "text": f"Response time: {response.response_time_seconds // 60 if response.response_time_seconds else 0}m | ID: {client.id}"
+                "text": f"Response time: {response.response_time_seconds // 60 if response.response_time_seconds else 0} minutes | Client ID: {client.id}"
             }
         ]
     })

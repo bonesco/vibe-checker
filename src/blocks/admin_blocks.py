@@ -16,11 +16,11 @@ def get_add_client_modal() -> Dict[str, Any]:
         "callback_id": "add_client_modal",
         "title": {
             "type": "plain_text",
-            "text": "ADD CLIENT"
+            "text": "Add New Client"
         },
         "submit": {
             "type": "plain_text",
-            "text": "Add"
+            "text": "Add Client"
         },
         "blocks": [
             {
@@ -31,12 +31,12 @@ def get_add_client_modal() -> Dict[str, Any]:
                     "action_id": "user_input",
                     "placeholder": {
                         "type": "plain_text",
-                        "text": "Select user"
+                        "text": "Select a user"
                     }
                 },
                 "label": {
                     "type": "plain_text",
-                    "text": "USER"
+                    "text": "Client User"
                 }
             },
             {
@@ -47,26 +47,26 @@ def get_add_client_modal() -> Dict[str, Any]:
                     "action_id": "timezone_select",
                     "placeholder": {
                         "type": "plain_text",
-                        "text": "Select"
+                        "text": "Select timezone"
                     },
                     "initial_option": {
-                        "text": {"type": "plain_text", "text": "New York (EST/EDT)"},
+                        "text": {"type": "plain_text", "text": "America/New_York (EST/EDT)"},
                         "value": "America/New_York"
                     },
                     "options": [
-                        {"text": {"type": "plain_text", "text": "New York (EST/EDT)"}, "value": "America/New_York"},
-                        {"text": {"type": "plain_text", "text": "Chicago (CST/CDT)"}, "value": "America/Chicago"},
-                        {"text": {"type": "plain_text", "text": "Denver (MST/MDT)"}, "value": "America/Denver"},
-                        {"text": {"type": "plain_text", "text": "Los Angeles (PST/PDT)"}, "value": "America/Los_Angeles"},
-                        {"text": {"type": "plain_text", "text": "London (GMT/BST)"}, "value": "Europe/London"},
-                        {"text": {"type": "plain_text", "text": "Paris (CET/CEST)"}, "value": "Europe/Paris"},
-                        {"text": {"type": "plain_text", "text": "Tokyo (JST)"}, "value": "Asia/Tokyo"},
+                        {"text": {"type": "plain_text", "text": "America/New_York (EST/EDT)"}, "value": "America/New_York"},
+                        {"text": {"type": "plain_text", "text": "America/Chicago (CST/CDT)"}, "value": "America/Chicago"},
+                        {"text": {"type": "plain_text", "text": "America/Denver (MST/MDT)"}, "value": "America/Denver"},
+                        {"text": {"type": "plain_text", "text": "America/Los_Angeles (PST/PDT)"}, "value": "America/Los_Angeles"},
+                        {"text": {"type": "plain_text", "text": "Europe/London (GMT/BST)"}, "value": "Europe/London"},
+                        {"text": {"type": "plain_text", "text": "Europe/Paris (CET/CEST)"}, "value": "Europe/Paris"},
+                        {"text": {"type": "plain_text", "text": "Asia/Tokyo (JST)"}, "value": "Asia/Tokyo"},
                         {"text": {"type": "plain_text", "text": "UTC"}, "value": "UTC"}
                     ]
                 },
                 "label": {
                     "type": "plain_text",
-                    "text": "TIMEZONE"
+                    "text": "Timezone"
                 }
             },
             {
@@ -88,25 +88,25 @@ def get_add_client_modal() -> Dict[str, Any]:
                             },
                             "description": {
                                 "type": "plain_text",
-                                "text": "Every day"
+                                "text": "Send standup request every day"
                             }
                         },
                         {
                             "value": "monday_only",
                             "text": {
                                 "type": "plain_text",
-                                "text": "Weekly"
+                                "text": "Monday Only"
                             },
                             "description": {
                                 "type": "plain_text",
-                                "text": "Mondays only"
+                                "text": "Send standup request only on Mondays"
                             }
                         }
                     ]
                 },
                 "label": {
                     "type": "plain_text",
-                    "text": "SCHEDULE"
+                    "text": "Standup Schedule"
                 }
             },
             {
@@ -118,12 +118,12 @@ def get_add_client_modal() -> Dict[str, Any]:
                     "initial_time": "09:00",
                     "placeholder": {
                         "type": "plain_text",
-                        "text": "Select"
+                        "text": "Select time"
                     }
                 },
                 "label": {
                     "type": "plain_text",
-                    "text": "TIME"
+                    "text": "Standup Time"
                 }
             }
         ]
@@ -146,7 +146,7 @@ def get_client_list_blocks(clients: List[Client]) -> List[Dict[str, Any]]:
                 "type": "section",
                 "text": {
                     "type": "mrkdwn",
-                    "text": "No clients. Run `/vibe-add-client` to add one."
+                    "text": "No clients found. Use `/vibe-add-client` to add one."
                 }
             }
         ]
@@ -156,31 +156,31 @@ def get_client_list_blocks(clients: List[Client]) -> List[Dict[str, Any]]:
             "type": "header",
             "text": {
                 "type": "plain_text",
-                "text": f"CLIENTS [{len(clients)}]"
+                "text": f"📋 Active Clients ({len(clients)})"
             }
         }
     ]
 
     for client in clients:
-        status = "ACTIVE" if client.is_active else "PAUSED"
-        standup_info = "Not configured"
+        status_emoji = "✅" if client.is_active else "⏸️"
+        standup_info = "No standup configured"
 
         if client.standup_config:
-            schedule_type = "Daily" if client.standup_config.schedule_type == "daily" else "Weekly"
-            paused = " [PAUSED]" if client.standup_config.is_paused else ""
-            standup_info = f"{schedule_type} @ {client.standup_config.schedule_time.strftime('%H:%M')}{paused}"
+            schedule_type = "Daily" if client.standup_config.schedule_type == "daily" else "Mondays"
+            paused = " (Paused)" if client.standup_config.is_paused else ""
+            standup_info = f"{schedule_type} at {client.standup_config.schedule_time.strftime('%I:%M %p')}{paused}"
 
-        feedback_status = "ON" if (client.feedback_config and client.feedback_config.is_enabled) else "OFF"
+        feedback_info = "✅ Enabled" if (client.feedback_config and client.feedback_config.is_enabled) else "❌ Disabled"
 
         blocks.append({
             "type": "section",
             "text": {
                 "type": "mrkdwn",
                 "text": (
-                    f"*<@{client.slack_user_id}>* [{status}]\n"
-                    f"Standup: {standup_info}\n"
-                    f"Feedback: {feedback_status}\n"
-                    f"TZ: {client.timezone}"
+                    f"{status_emoji} *<@{client.slack_user_id}>*\n"
+                    f"• Standup: {standup_info}\n"
+                    f"• Feedback: {feedback_info}\n"
+                    f"• Timezone: {client.timezone}"
                 )
             }
         })
@@ -201,14 +201,14 @@ def get_help_blocks() -> List[Dict[str, Any]]:
             "type": "header",
             "text": {
                 "type": "plain_text",
-                "text": "VIBE CHECK"
+                "text": "🎭 Vibe Check - Help"
             }
         },
         {
             "type": "section",
             "text": {
                 "type": "mrkdwn",
-                "text": "*Commands*"
+                "text": "*Available Commands:*"
             }
         },
         {
@@ -216,14 +216,14 @@ def get_help_blocks() -> List[Dict[str, Any]]:
             "text": {
                 "type": "mrkdwn",
                 "text": (
-                    "`/vibe-add-client` — Add client\n"
-                    "`/vibe-remove-client` — Remove client\n"
-                    "`/vibe-list-clients` — List clients\n"
-                    "`/vibe-pause` — Pause standups\n"
-                    "`/vibe-resume` — Resume standups\n"
-                    "`/vibe-set-channel` — Set feedback channel\n"
-                    "`/vibe-test` — Send test standup\n"
-                    "`/vibe-help` — This message"
+                    "`/vibe-add-client` - Add a new client to receive standups\n"
+                    "`/vibe-remove-client` - Remove a client\n"
+                    "`/vibe-list-clients` - List all active clients\n"
+                    "`/vibe-pause` - Pause standups for a client\n"
+                    "`/vibe-resume` - Resume standups for a client\n"
+                    "`/vibe-set-channel` - Set the vibe check feedback channel\n"
+                    "`/vibe-test` - Send a test standup to yourself\n"
+                    "`/vibe-help` - Show this help message"
                 )
             }
         },
@@ -234,10 +234,11 @@ def get_help_blocks() -> List[Dict[str, Any]]:
             "type": "section",
             "text": {
                 "type": "mrkdwn",
-                "text": "*How it works*\n"
-                       "Daily standups via DM at scheduled time.\n"
-                       "Weekly feedback every Friday.\n"
-                       "All responses posted to your channel."
+                "text": "*How it works:*\n"
+                       "• Daily standups are sent via DM at the configured time\n"
+                       "• Weekly feedback is sent every Friday\n"
+                       "• All feedback is posted to your private vibe check channel\n"
+                       "• Clients can submit responses using the interactive buttons"
             }
         }
     ]
@@ -302,13 +303,13 @@ def get_client_select_modal(
                     "action_id": "client_select_input",
                     "placeholder": {
                         "type": "plain_text",
-                        "text": "Select"
+                        "text": "Select a client"
                     },
                     "options": options
                 },
                 "label": {
                     "type": "plain_text",
-                    "text": "CLIENT"
+                    "text": "Client"
                 }
             }
         ]
@@ -322,9 +323,9 @@ def get_pause_client_modal(clients: List[Client]) -> Optional[Dict[str, Any]]:
     return get_client_select_modal(
         action="pause",
         clients=active_clients,
-        title="PAUSE",
+        title="Pause Standups",
         submit_text="Pause",
-        description="Select client to pause. They won't receive standups until resumed."
+        description="Select a client to pause their standup messages. They won't receive standups until resumed."
     )
 
 
@@ -335,9 +336,9 @@ def get_resume_client_modal(clients: List[Client]) -> Optional[Dict[str, Any]]:
     return get_client_select_modal(
         action="resume",
         clients=paused_clients,
-        title="RESUME",
+        title="Resume Standups",
         submit_text="Resume",
-        description="Select client to resume standups."
+        description="Select a client to resume their standup messages."
     )
 
 
@@ -346,9 +347,9 @@ def get_remove_client_modal(clients: List[Client]) -> Optional[Dict[str, Any]]:
     return get_client_select_modal(
         action="remove",
         clients=clients,
-        title="REMOVE",
+        title="Remove Client",
         submit_text="Remove",
-        description="*Warning:* This permanently removes the client and all history."
+        description="⚠️ *Warning:* This will permanently remove the client and all their response history."
     )
 
 
@@ -359,18 +360,18 @@ def get_set_channel_modal() -> Dict[str, Any]:
         "callback_id": "set_channel_modal",
         "title": {
             "type": "plain_text",
-            "text": "SET CHANNEL"
+            "text": "Set Vibe Channel"
         },
         "submit": {
             "type": "plain_text",
-            "text": "Set"
+            "text": "Set Channel"
         },
         "blocks": [
             {
                 "type": "section",
                 "text": {
                     "type": "mrkdwn",
-                    "text": "Select channel for feedback summaries."
+                    "text": "Select the channel where client feedback summaries will be posted."
                 }
             },
             {
@@ -381,12 +382,12 @@ def get_set_channel_modal() -> Dict[str, Any]:
                     "action_id": "channel_select_input",
                     "placeholder": {
                         "type": "plain_text",
-                        "text": "Select"
+                        "text": "Select a channel"
                     }
                 },
                 "label": {
                     "type": "plain_text",
-                    "text": "CHANNEL"
+                    "text": "Vibe Check Channel"
                 }
             },
             {
@@ -394,7 +395,7 @@ def get_set_channel_modal() -> Dict[str, Any]:
                 "elements": [
                     {
                         "type": "mrkdwn",
-                        "text": "Use a private channel for confidential feedback."
+                        "text": "💡 *Tip:* Use a private channel for confidential feedback."
                     }
                 ]
             }
@@ -405,9 +406,9 @@ def get_set_channel_modal() -> Dict[str, Any]:
 def get_no_clients_message(action: str) -> List[Dict[str, Any]]:
     """Get message blocks when no clients are available for an action"""
     messages = {
-        "pause": "No active clients to pause.",
-        "resume": "No paused clients to resume.",
-        "remove": "No clients found."
+        "pause": "No active clients to pause. All clients are either already paused or don't have standup configs.",
+        "resume": "No paused clients to resume. Use `/vibe-pause` to pause a client first.",
+        "remove": "No clients found. Use `/vibe-add-client` to add one."
     }
     return [
         {

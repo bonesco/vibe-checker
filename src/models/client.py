@@ -1,6 +1,6 @@
 """Client model - represents users receiving standups and feedback requests"""
 
-from sqlalchemy import Column, Integer, String, Boolean, ForeignKey
+from sqlalchemy import Column, Integer, String, Boolean, ForeignKey, UniqueConstraint
 from sqlalchemy.orm import relationship
 from src.models.base import Base, TimestampMixin
 
@@ -13,6 +13,9 @@ class Client(Base, TimestampMixin):
     """
 
     __tablename__ = 'clients'
+    __table_args__ = (
+        UniqueConstraint('workspace_id', 'slack_user_id', name='uq_client_workspace_user'),
+    )
 
     id = Column(Integer, primary_key=True)
     workspace_id = Column(Integer, ForeignKey('workspaces.id', ondelete='CASCADE'), nullable=False, index=True)

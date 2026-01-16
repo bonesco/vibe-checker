@@ -6,7 +6,8 @@ from src.services.client_service import (
     get_client,
     pause_client_standups,
     resume_client_standups,
-    remove_client
+    remove_client,
+    ClientAlreadyExistsError
 )
 from src.services.workspace_service import get_workspace_by_team_id, set_vibe_check_channel
 from src.utils.logger import setup_logger
@@ -63,8 +64,19 @@ def register(app):
 
             logger.info(f"Added new client via modal: {user_id} (ID: {new_client.id})")
 
+        except ClientAlreadyExistsError:
+            logger.warning(f"Attempted to add existing client: {user_id}")
+            client.chat_postMessage(
+                channel=body["user"]["id"],
+                text=f"⚠️ <@{user_id}> is already a client. You can manage them using `/vibe-list`."
+            )
+
         except Exception as e:
             logger.error(f"Error handling add client submission: {e}")
+            client.chat_postMessage(
+                channel=body["user"]["id"],
+                text="❌ Failed to add client. Please try again or contact support if the issue persists."
+            )
 
     @app.view("pause_client_modal")
     def handle_pause_client_submission(ack, body, client, view):

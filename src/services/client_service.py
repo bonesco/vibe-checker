@@ -13,6 +13,11 @@ from src.services.scheduler_service import add_standup_job, add_feedback_job, re
 logger = setup_logger(__name__)
 
 
+class ClientAlreadyExistsError(Exception):
+    """Raised when attempting to add a client that already exists"""
+    pass
+
+
 def add_client(
     workspace_id: int,
     slack_user_id: str,
@@ -36,8 +41,21 @@ def add_client(
 
     Returns:
         Created Client instance
+
+    Raises:
+        ClientAlreadyExistsError: If a client with this Slack user ID already exists in the workspace
     """
     with db_transaction() as session:
+        # Check for existing client
+        existing = session.query(Client).filter_by(
+            workspace_id=workspace_id,
+            slack_user_id=slack_user_id
+        ).first()
+        if existing:
+            raise ClientAlreadyExistsError(
+                f"User {slack_user_id} is already a client in this workspace"
+            )
+
         # Create client
         client = Client(
             workspace_id=workspace_id,

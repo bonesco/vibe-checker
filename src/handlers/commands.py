@@ -11,19 +11,38 @@ from src.blocks.admin_blocks import (
     get_no_clients_message
 )
 from src.services.client_service import get_workspace_clients
-from src.services.workspace_service import get_workspace_by_team_id
+from src.services.workspace_service import get_workspace_by_team_id, is_workspace_admin
 from src.utils.logger import setup_logger
 
 logger = setup_logger(__name__)
+
+
+def check_admin(body, client, command):
+    """Check if user is admin, return True if authorized, False otherwise"""
+    workspace = get_workspace_by_team_id(body["team_id"])
+    user_id = command["user_id"]
+    channel_id = command["channel_id"]
+
+    if not workspace or not is_workspace_admin(workspace.id, user_id):
+        client.chat_postEphemeral(
+            channel=channel_id,
+            user=user_id,
+            text="You don't have permission to use this command. Only workspace admins can manage Vibe Check."
+        )
+        logger.warning(f"Unauthorized command access attempt by user {user_id}")
+        return False
+    return True
 
 
 def register(app):
     """Register all slash command handlers"""
 
     @app.command("/vibe-add-client")
-    def handle_add_client(ack, command, client):
-        """Open modal to add a new client"""
+    def handle_add_client(ack, command, client, body):
+        """Open modal to add a new client (admin only)"""
         ack()
+        if not check_admin(body, client, command):
+            return
         try:
             client.views_open(
                 trigger_id=command["trigger_id"],
@@ -99,8 +118,10 @@ def register(app):
 
     @app.command("/vibe-pause")
     def handle_pause_client(ack, command, client, body):
-        """Open modal to pause a client's standups"""
+        """Open modal to pause a client's standups (admin only)"""
         ack()
+        if not check_admin(body, client, command):
+            return
         try:
             workspace = get_workspace_by_team_id(body["team_id"])
             if not workspace:
@@ -131,8 +152,10 @@ def register(app):
 
     @app.command("/vibe-resume")
     def handle_resume_client(ack, command, client, body):
-        """Open modal to resume a client's standups"""
+        """Open modal to resume a client's standups (admin only)"""
         ack()
+        if not check_admin(body, client, command):
+            return
         try:
             workspace = get_workspace_by_team_id(body["team_id"])
             if not workspace:
@@ -163,8 +186,10 @@ def register(app):
 
     @app.command("/vibe-remove-client")
     def handle_remove_client(ack, command, client, body):
-        """Open modal to remove a client"""
+        """Open modal to remove a client (admin only)"""
         ack()
+        if not check_admin(body, client, command):
+            return
         try:
             workspace = get_workspace_by_team_id(body["team_id"])
             if not workspace:
@@ -194,9 +219,11 @@ def register(app):
             logger.error(f"Error opening remove modal: {e}")
 
     @app.command("/vibe-set-channel")
-    def handle_set_channel(ack, command, client):
-        """Open modal to set the vibe check channel"""
+    def handle_set_channel(ack, command, client, body):
+        """Open modal to set the vibe check channel (admin only)"""
         ack()
+        if not check_admin(body, client, command):
+            return
         try:
             modal = get_set_channel_modal()
             client.views_open(

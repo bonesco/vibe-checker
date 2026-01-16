@@ -85,10 +85,12 @@ def init_full_app():
         # Register handlers
         print("Registering handlers...", flush=True)
         from src.handlers import commands, actions, views, events
+        from src.middleware.error_middleware import setup_error_handlers
         commands.register(slack_app)
         actions.register(slack_app)
         views.register(slack_app)
         events.register(slack_app)
+        setup_error_handlers(slack_app)
 
         # Initialize scheduler
         print("Starting scheduler...", flush=True)

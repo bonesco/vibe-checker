@@ -9,28 +9,69 @@ logger = setup_logger(__name__)
 
 def require_admin(func):
     """
-    Decorator to require admin authorization for commands
+    Decorator to require admin authorization for commands.
+
+    Handles both slash commands and modal/view submissions which have
+    different body structures.
 
     Usage:
+        @app.command("/vibe-add-client")
         @require_admin
-        def my_command_handler(ack, body, client):
+        def handle_add_client(ack, command, client, body):
             ...
     """
     @wraps(func)
-    def wrapper(ack, body, client, *args, **kwargs):
-        workspace = get_workspace_by_team_id(body["team"]["id"])
-        user_id = body["user"]["id"]
+    def wrapper(ack, *args, **kwargs):
+        # Get body and command from kwargs (Slack Bolt passes these)
+        body = kwargs.get('body', {})
+        command = kwargs.get('command', {})
+        slack_client = kwargs.get('client')
+
+        # Determine team_id and user_id based on request type
+        # Slash commands have team_id at top level
+        # Modal submissions have team.id nested
+        if 'team_id' in body:
+            # Slash command
+            team_id = body.get('team_id')
+            user_id = body.get('user_id')
+            channel_id = body.get('channel_id', user_id)
+        elif 'team_id' in command:
+            # Slash command via command dict
+            team_id = command.get('team_id')
+            user_id = command.get('user_id')
+            channel_id = command.get('channel_id', user_id)
+        elif 'team' in body:
+            # Modal/view submission
+            team_id = body.get('team', {}).get('id')
+            user_id = body.get('user', {}).get('id')
+            channel_id = user_id
+        else:
+            # Fallback - try to extract from any available source
+            team_id = body.get('team_id') or command.get('team_id')
+            user_id = body.get('user_id') or command.get('user_id')
+            channel_id = body.get('channel_id') or command.get('channel_id') or user_id
+
+        if not team_id or not user_id:
+            ack()
+            logger.error("Could not extract team_id or user_id from request")
+            return
+
+        workspace = get_workspace_by_team_id(team_id)
 
         if not workspace or not is_workspace_admin(workspace.id, user_id):
             ack()
-            client.chat_postEphemeral(
-                channel=body.get("channel_id", user_id),
-                user=user_id,
-                text="⛔ You don't have permission to use this command. Only workspace admins can manage Vibe Check."
-            )
-            logger.warning(f"Unauthorized command access attempt by user {user_id}")
+            if slack_client:
+                try:
+                    slack_client.chat_postEphemeral(
+                        channel=channel_id,
+                        user=user_id,
+                        text="⛔ You don't have permission to use this command. Only workspace admins can manage Vibe Check.\n\nContact your workspace admin to be added as an admin."
+                    )
+                except Exception as e:
+                    logger.error(f"Failed to send unauthorized message: {e}")
+            logger.warning(f"Unauthorized command access attempt by user {user_id} in team {team_id}")
             return
 
-        return func(ack, body, client, *args, **kwargs)
+        return func(ack, *args, **kwargs)
 
     return wrapper

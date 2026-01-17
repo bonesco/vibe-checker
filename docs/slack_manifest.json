@@ -58,6 +58,12 @@
         "description": "Show help documentation",
         "usage_hint": "",
         "should_escape": false
+      },
+      {
+        "command": "/vibe-admin",
+        "description": "Manage workspace admins",
+        "usage_hint": "[add @user]",
+        "should_escape": false
       }
     ]
   },

@@ -116,6 +116,12 @@ Go to **Slash Commands** and create these commands:
 - **Short Description**: "Show help documentation"
 - **Usage Hint**: (leave empty)
 
+### /vibe-admin
+- **Command**: `/vibe-admin`
+- **Request URL**: `https://your-app.railway.app/slack/events`
+- **Short Description**: "Manage workspace admins"
+- **Usage Hint**: `[add @user]`
+
 ---
 
 ## Step 5: Interactivity
@@ -454,14 +460,17 @@ To distribute to multiple workspaces:
 
 The user who installs the app becomes the first admin. To add more admins:
 
-1. Update database directly (future: add `/vibe-add-admin` command):
-   ```sql
-   UPDATE workspaces
-   SET admin_user_ids = array_append(admin_user_ids, 'U123ABC456')
-   WHERE team_id = 'T123ABC';
+1. **Use the `/vibe-admin` command** (recommended):
+   ```
+   /vibe-admin add @username
    ```
 
-2. Or modify in code and redeploy
+2. Or view current admins:
+   ```
+   /vibe-admin
+   ```
+
+Note: Only existing admins can add new admins.
 
 ---
 

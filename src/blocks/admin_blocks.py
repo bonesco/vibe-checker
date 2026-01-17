@@ -216,12 +216,16 @@ def get_help_blocks() -> List[Dict[str, Any]]:
             "text": {
                 "type": "mrkdwn",
                 "text": (
+                    "*Client Management (Admin only):*\n"
                     "`/vibe-add-client` - Add a new client to receive standups\n"
                     "`/vibe-remove-client` - Remove a client\n"
                     "`/vibe-list-clients` - List all active clients\n"
                     "`/vibe-pause` - Pause standups for a client\n"
-                    "`/vibe-resume` - Resume standups for a client\n"
+                    "`/vibe-resume` - Resume standups for a client\n\n"
+                    "*Configuration (Admin only):*\n"
                     "`/vibe-set-channel` - Set the vibe check feedback channel\n"
+                    "`/vibe-admin` - Manage workspace admins\n\n"
+                    "*General:*\n"
                     "`/vibe-test` - Send a test standup to yourself\n"
                     "`/vibe-help` - Show this help message"
                 )

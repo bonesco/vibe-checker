@@ -22,7 +22,7 @@ def check_admin(body, client, command):
 
     If no human admins exist yet, automatically makes the user an admin.
     """
-    from src.services.workspace_service import add_admin
+    from src.services.workspace_service import add_admin, get_workspace_admins
 
     workspace = get_workspace_by_team_id(body["team_id"])
     user_id = command["user_id"]
@@ -36,18 +36,21 @@ def check_admin(body, client, command):
         )
         return False
 
+    workspace_id = workspace.id
+
     # Check if user is already an admin
-    if is_workspace_admin(workspace.id, user_id):
+    if is_workspace_admin(workspace_id, user_id):
         return True
 
-    # If no admins exist (or only the bot is admin), make this user an admin
-    admin_ids = workspace.admin_user_ids or []
-    # Bot user IDs typically don't start with 'U' - they start with 'B' or 'W'
+    # Get current admins (fresh query to avoid detached object issues)
+    admin_ids = get_workspace_admins(workspace_id)
+
+    # Check if there are any human admins (user IDs start with 'U')
     human_admins = [aid for aid in admin_ids if aid.startswith('U')]
 
     if not human_admins:
         # No human admins yet, make this user an admin
-        add_admin(workspace.id, user_id)
+        add_admin(workspace_id, user_id)
         logger.info(f"Auto-promoted user {user_id} to admin (first human admin)")
         return True
 

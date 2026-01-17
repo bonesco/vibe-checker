@@ -145,3 +145,11 @@ def is_workspace_admin(workspace_id: int, user_id: str) -> bool:
     """Check if user is an admin for the workspace"""
     workspace = get_workspace_by_id(workspace_id)
     return workspace and workspace.is_admin(user_id)
+
+
+def get_workspace_admins(workspace_id: int) -> List[str]:
+    """Get list of admin user IDs for a workspace"""
+    workspace = get_workspace_by_id(workspace_id)
+    if workspace:
+        return workspace.admin_user_ids or []
+    return []

@@ -67,16 +67,27 @@ def init_full_app():
         # Create workspace if it doesn't exist
         if not get_workspace_by_team_id(team_id):
             print("Creating workspace record...", flush=True)
+            # Use ADMIN_USER_ID env var if set, otherwise fall back to bot user
+            initial_admin = os.environ.get("ADMIN_USER_ID", bot_user_id)
             create_workspace(
                 team_id=team_id,
                 team_name=team_name,
                 bot_token=config.SLACK_BOT_TOKEN,
                 bot_user_id=bot_user_id,
                 scope="chat:write,commands,im:write,users:read",
-                installer_user_id=bot_user_id
+                installer_user_id=initial_admin
             )
+            print(f"Workspace created with admin: {initial_admin}", flush=True)
         else:
             print("Workspace already exists.", flush=True)
+            # Check if ADMIN_USER_ID env var is set and add as admin if not already
+            admin_user_id = os.environ.get("ADMIN_USER_ID")
+            if admin_user_id:
+                from src.services.workspace_service import add_admin
+                workspace = get_workspace_by_team_id(team_id)
+                if workspace and admin_user_id not in (workspace.admin_user_ids or []):
+                    add_admin(workspace.id, admin_user_id)
+                    print(f"Added {admin_user_id} as admin", flush=True)
 
         # Create Slack app
         print("Creating Slack app...", flush=True)

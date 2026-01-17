@@ -62,11 +62,19 @@ def require_admin(func):
             ack()
             if slack_client:
                 try:
-                    slack_client.chat_postEphemeral(
-                        channel=channel_id,
-                        user=user_id,
-                        text="⛔ You don't have permission to use this command. Only workspace admins can manage Vibe Check.\n\nContact your workspace admin to be added as an admin."
-                    )
+                    # For DM channels, send a regular message instead of ephemeral
+                    # chat_postEphemeral doesn't work in DMs
+                    if channel_id and channel_id.startswith('D'):
+                        slack_client.chat_postMessage(
+                            channel=user_id,
+                            text="⛔ You don't have permission to use this command. Only workspace admins can manage Vibe Check.\n\nContact your workspace admin to be added as an admin."
+                        )
+                    else:
+                        slack_client.chat_postEphemeral(
+                            channel=channel_id,
+                            user=user_id,
+                            text="⛔ You don't have permission to use this command. Only workspace admins can manage Vibe Check.\n\nContact your workspace admin to be added as an admin."
+                        )
                 except Exception as e:
                     logger.error(f"Failed to send unauthorized message: {e}")
             logger.warning(f"Unauthorized command access attempt by user {user_id} in team {team_id}")

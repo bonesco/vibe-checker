@@ -73,11 +73,11 @@ def get_standup_message_blocks(client_id: int, scheduled_date: date) -> List[Dic
         {
             "type": "input",
             "block_id": f"blockers_{client_id}_{date_key}",
+            "optional": True,
             "element": {
                 "type": "plain_text_input",
                 "action_id": "blockers_input",
                 "multiline": True,
-                "optional": True,
                 "placeholder": {
                     "type": "plain_text",
                     "text": "Any blockers or concerns?"

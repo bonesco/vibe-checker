@@ -18,6 +18,32 @@ from src.utils.logger import setup_logger
 logger = setup_logger(__name__)
 
 
+def send_response(client, command, text, blocks=None):
+    """
+    Send a response to a command, handling DM channels properly.
+
+    chat_postEphemeral doesn't work in DM channels, so we use
+    chat_postMessage for DMs instead.
+    """
+    channel_id = command.get("channel_id", "")
+    user_id = command.get("user_id")
+
+    try:
+        # DM channel IDs start with 'D'
+        if channel_id.startswith('D'):
+            kwargs = {"channel": user_id, "text": text}
+            if blocks:
+                kwargs["blocks"] = blocks
+            client.chat_postMessage(**kwargs)
+        else:
+            kwargs = {"channel": channel_id, "user": user_id, "text": text}
+            if blocks:
+                kwargs["blocks"] = blocks
+            client.chat_postEphemeral(**kwargs)
+    except Exception as e:
+        logger.error(f"Failed to send response: {e}")
+
+
 def register(app):
     """Register all slash command handlers"""
 
@@ -42,22 +68,12 @@ def register(app):
         try:
             workspace = get_workspace_by_team_id(body["team_id"])
             if not workspace:
-                client.chat_postEphemeral(
-                    channel=command["channel_id"],
-                    user=command["user_id"],
-                    text="Workspace not found"
-                )
+                send_response(client, command, "Workspace not found")
                 return
 
             clients = get_workspace_clients(workspace.id)
             blocks = get_client_list_blocks(clients)
-
-            client.chat_postEphemeral(
-                channel=command["channel_id"],
-                user=command["user_id"],
-                text=f"Found {len(clients)} clients",
-                blocks=blocks
-            )
+            send_response(client, command, f"Found {len(clients)} clients", blocks)
         except Exception as e:
             logger.error(f"Error listing clients: {e}")
 
@@ -67,12 +83,7 @@ def register(app):
         ack()
         try:
             blocks = get_help_blocks()
-            client.chat_postEphemeral(
-                channel=command["channel_id"],
-                user=command["user_id"],
-                text="Vibe Check Help",
-                blocks=blocks
-            )
+            send_response(client, command, "Vibe Check Help", blocks)
         except Exception as e:
             logger.error(f"Error showing help: {e}")
 
@@ -93,11 +104,7 @@ def register(app):
                 blocks=blocks
             )
 
-            client.chat_postEphemeral(
-                channel=command["channel_id"],
-                user=command["user_id"],
-                text="Test standup sent to your DMs!"
-            )
+            send_response(client, command, "Test standup sent to your DMs!")
         except Exception as e:
             logger.error(f"Error sending test: {e}")
 
@@ -109,11 +116,7 @@ def register(app):
         try:
             workspace = get_workspace_by_team_id(body["team_id"])
             if not workspace:
-                client.chat_postEphemeral(
-                    channel=command["channel_id"],
-                    user=command["user_id"],
-                    text="Workspace not found. Please reinstall the app."
-                )
+                send_response(client, command, "Workspace not found. Please reinstall the app.")
                 return
 
             clients = get_workspace_clients(workspace.id)
@@ -125,12 +128,7 @@ def register(app):
                     view=modal
                 )
             else:
-                client.chat_postEphemeral(
-                    channel=command["channel_id"],
-                    user=command["user_id"],
-                    text="No active clients to pause.",
-                    blocks=get_no_clients_message("pause")
-                )
+                send_response(client, command, "No active clients to pause.", get_no_clients_message("pause"))
         except Exception as e:
             logger.error(f"Error opening pause modal: {e}")
 
@@ -142,11 +140,7 @@ def register(app):
         try:
             workspace = get_workspace_by_team_id(body["team_id"])
             if not workspace:
-                client.chat_postEphemeral(
-                    channel=command["channel_id"],
-                    user=command["user_id"],
-                    text="Workspace not found. Please reinstall the app."
-                )
+                send_response(client, command, "Workspace not found. Please reinstall the app.")
                 return
 
             clients = get_workspace_clients(workspace.id)
@@ -158,12 +152,7 @@ def register(app):
                     view=modal
                 )
             else:
-                client.chat_postEphemeral(
-                    channel=command["channel_id"],
-                    user=command["user_id"],
-                    text="No paused clients to resume.",
-                    blocks=get_no_clients_message("resume")
-                )
+                send_response(client, command, "No paused clients to resume.", get_no_clients_message("resume"))
         except Exception as e:
             logger.error(f"Error opening resume modal: {e}")
 
@@ -175,11 +164,7 @@ def register(app):
         try:
             workspace = get_workspace_by_team_id(body["team_id"])
             if not workspace:
-                client.chat_postEphemeral(
-                    channel=command["channel_id"],
-                    user=command["user_id"],
-                    text="Workspace not found. Please reinstall the app."
-                )
+                send_response(client, command, "Workspace not found. Please reinstall the app.")
                 return
 
             clients = get_workspace_clients(workspace.id)
@@ -191,12 +176,7 @@ def register(app):
                     view=modal
                 )
             else:
-                client.chat_postEphemeral(
-                    channel=command["channel_id"],
-                    user=command["user_id"],
-                    text="No clients to remove.",
-                    blocks=get_no_clients_message("remove")
-                )
+                send_response(client, command, "No clients to remove.", get_no_clients_message("remove"))
         except Exception as e:
             logger.error(f"Error opening remove modal: {e}")
 
@@ -222,11 +202,7 @@ def register(app):
         try:
             workspace = get_workspace_by_team_id(body["team_id"])
             if not workspace:
-                client.chat_postEphemeral(
-                    channel=command["channel_id"],
-                    user=command["user_id"],
-                    text="Workspace not found."
-                )
+                send_response(client, command, "Workspace not found.")
                 return
 
             # Check for user mention in command text
@@ -239,59 +215,43 @@ def register(app):
                 if match:
                     new_admin_id = match.group(1)
                     if add_admin(workspace.id, new_admin_id):
-                        client.chat_postEphemeral(
-                            channel=command["channel_id"],
-                            user=command["user_id"],
-                            text=f"Added <@{new_admin_id}> as an admin."
-                        )
+                        send_response(client, command, f"Added <@{new_admin_id}> as an admin.")
                     else:
-                        client.chat_postEphemeral(
-                            channel=command["channel_id"],
-                            user=command["user_id"],
-                            text="Failed to add admin. Please try again."
-                        )
+                        send_response(client, command, "Failed to add admin. Please try again.")
                 else:
-                    client.chat_postEphemeral(
-                        channel=command["channel_id"],
-                        user=command["user_id"],
-                        text="Please mention a user to add. Usage: `/vibe-admin add @username`"
-                    )
+                    send_response(client, command, "Please mention a user to add. Usage: `/vibe-admin add @username`")
             else:
                 # Show current admins and usage
                 admin_ids = workspace.admin_user_ids or []
                 admin_list = "\n".join([f"  - <@{uid}>" for uid in admin_ids]) if admin_ids else "  (none)"
 
-                client.chat_postEphemeral(
-                    channel=command["channel_id"],
-                    user=command["user_id"],
-                    blocks=[
-                        {
-                            "type": "header",
-                            "text": {
-                                "type": "plain_text",
-                                "text": "Vibe Check Admin Management"
-                            }
-                        },
-                        {
-                            "type": "section",
-                            "text": {
-                                "type": "mrkdwn",
-                                "text": f"*Current Admins:*\n{admin_list}"
-                            }
-                        },
-                        {
-                            "type": "divider"
-                        },
-                        {
-                            "type": "section",
-                            "text": {
-                                "type": "mrkdwn",
-                                "text": "*Usage:*\n`/vibe-admin` - Show current admins\n`/vibe-admin add @user` - Add a new admin"
-                            }
+                blocks = [
+                    {
+                        "type": "header",
+                        "text": {
+                            "type": "plain_text",
+                            "text": "Vibe Check Admin Management"
                         }
-                    ],
-                    text="Vibe Check Admin Management"
-                )
+                    },
+                    {
+                        "type": "section",
+                        "text": {
+                            "type": "mrkdwn",
+                            "text": f"*Current Admins:*\n{admin_list}"
+                        }
+                    },
+                    {
+                        "type": "divider"
+                    },
+                    {
+                        "type": "section",
+                        "text": {
+                            "type": "mrkdwn",
+                            "text": "*Usage:*\n`/vibe-admin` - Show current admins\n`/vibe-admin add @user` - Add a new admin"
+                        }
+                    }
+                ]
+                send_response(client, command, "Vibe Check Admin Management", blocks)
         except Exception as e:
             logger.error(f"Error in admin command: {e}")
 

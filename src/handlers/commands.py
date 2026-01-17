@@ -18,20 +18,47 @@ logger = setup_logger(__name__)
 
 
 def check_admin(body, client, command):
-    """Check if user is admin, return True if authorized, False otherwise"""
+    """Check if user is admin, return True if authorized, False otherwise.
+
+    If no human admins exist yet, automatically makes the user an admin.
+    """
+    from src.services.workspace_service import add_admin
+
     workspace = get_workspace_by_team_id(body["team_id"])
     user_id = command["user_id"]
     channel_id = command["channel_id"]
 
-    if not workspace or not is_workspace_admin(workspace.id, user_id):
+    if not workspace:
         client.chat_postEphemeral(
             channel=channel_id,
             user=user_id,
-            text="You don't have permission to use this command. Only workspace admins can manage Vibe Check."
+            text="Workspace not found. Please reinstall the app."
         )
-        logger.warning(f"Unauthorized command access attempt by user {user_id}")
         return False
-    return True
+
+    # Check if user is already an admin
+    if is_workspace_admin(workspace.id, user_id):
+        return True
+
+    # If no admins exist (or only the bot is admin), make this user an admin
+    admin_ids = workspace.admin_user_ids or []
+    # Bot user IDs typically don't start with 'U' - they start with 'B' or 'W'
+    human_admins = [aid for aid in admin_ids if aid.startswith('U')]
+
+    if not human_admins:
+        # No human admins yet, make this user an admin
+        add_admin(workspace.id, user_id)
+        logger.info(f"Auto-promoted user {user_id} to admin (first human admin)")
+        return True
+
+    # User is not an admin and there are other human admins
+    client.chat_postEphemeral(
+        channel=channel_id,
+        user=user_id,
+        text="You don't have permission to use this command. Only workspace admins can manage Vibe Check."
+    )
+    logger.warning(f"Unauthorized command access attempt by user {user_id}")
+    return False
 
 
 def register(app):

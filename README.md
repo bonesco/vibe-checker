@@ -1,300 +1,209 @@
-# 🎭 Vibe Check - Client Communication Slack App
+# Vibe Check - Client Communication Slack App
 
 Professional Slack app for managing client relationships through automated daily standups and weekly feedback collection.
 
 ## Features
 
-- **📋 Daily Standups**: Automated DM standup requests (daily or Monday-only)
-- **🎭 Weekly Feedback**: Friday feedback collection with satisfaction ratings
-- **🔒 Private & Secure**: All responses are private until posted to your vibe check channel
-- **⚡ Multi-Workspace**: Support for multiple client workspaces with isolated data
-- **🎯 Easy Management**: Slash commands for all admin tasks
-- **📊 Analytics Ready**: Track response rates and satisfaction trends
-
-## Architecture
-
-- **Backend**: Python 3.11 with Slack Bolt framework
-- **Database**: PostgreSQL with SQLAlchemy ORM
-- **Scheduling**: APScheduler with database-backed job store
-- **Hosting**: Railway (or any Python-compatible platform)
-- **Security**: Fernet encryption for tokens, signature verification
-
-## Project Structure
-
-```
-vibe-check-slack/
-├── app.py                      # Main entry point
-├── requirements.txt            # Python dependencies
-├── Procfile                    # Railway deployment config
-├── runtime.txt                 # Python version
-├── .env.example                # Environment template
-├── alembic.ini                 # Database migrations config
-│
-├── src/
-│   ├── config.py               # Configuration management
-│   ├── app_factory.py          # Slack Bolt app setup
-│   │
-│   ├── models/                 # Database models
-│   │   ├── workspace.py
-│   │   ├── client.py
-│   │   ├── standup_config.py
-│   │   ├── feedback_config.py
-│   │   ├── standup_response.py
-│   │   └── feedback_response.py
-│   │
-│   ├── services/               # Business logic
-│   │   ├── workspace_service.py
-│   │   ├── client_service.py
-│   │   ├── standup_service.py
-│   │   ├── feedback_service.py
-│   │   └── scheduler_service.py
-│   │
-│   ├── handlers/               # Slack event handlers
-│   │   ├── commands.py
-│   │   ├── actions.py
-│   │   ├── views.py
-│   │   └── events.py
-│   │
-│   ├── blocks/                 # Block Kit UI templates
-│   │   ├── standup_blocks.py
-│   │   ├── feedback_blocks.py
-│   │   └── admin_blocks.py
-│   │
-│   ├── utils/                  # Utilities
-│   │   ├── encryption.py
-│   │   ├── logger.py
-│   │   └── validators.py
-│   │
-│   └── middleware/             # Middleware
-│       ├── auth_middleware.py
-│       └── error_middleware.py
-│
-├── scripts/
-│   ├── init_db.py              # Initialize database
-│   └── migrate.py              # Run migrations
-│
-└── docs/
-    ├── DEPLOYMENT.md           # Deployment guide
-    ├── SLACK_SETUP.md          # Slack app setup
-    └── slack_manifest.json     # Slack app manifest
-```
+- **Daily Standups**: Automated DM standup requests (daily or Monday-only)
+- **Weekly Feedback**: Friday feedback collection with satisfaction ratings
+- **Private & Secure**: All responses are private until posted to your vibe check channel
+- **Admin Controls**: Role-based access for managing clients and settings
+- **Data Retention**: Automatic cleanup of old data (configurable)
+- **Health Monitoring**: Built-in health check endpoint for monitoring
 
 ## Quick Start
 
-### Prerequisites
+### 1. Deploy to Railway
 
-- Python 3.11+
-- PostgreSQL database
-- Slack workspace with admin access
-- Railway account (or alternative hosting)
+[![Deploy on Railway](https://railway.app/button.svg)](https://railway.app)
 
-### Local Development Setup
+1. Click the button above or go to [Railway](https://railway.app)
+2. Connect your GitHub repository
+3. Add a PostgreSQL database
+4. Set environment variables (see below)
+5. Deploy
 
-1. **Clone and setup environment**:
-   ```bash
-   cd "Vibe Check"
-   python3 -m venv venv
-   source venv/bin/activate  # On Windows: venv\Scripts\activate
-   pip install -r requirements.txt
-   ```
+### 2. Configure Environment Variables
 
-2. **Configure environment variables**:
-   ```bash
-   cp .env.example .env
-   # Edit .env with your values (see below)
-   ```
+**Required:**
 
-3. **Generate encryption key**:
-   ```bash
-   python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
-   # Add output to .env as ENCRYPTION_KEY
-   ```
+| Variable | Description |
+|----------|-------------|
+| `SLACK_BOT_TOKEN` | Bot token from Slack app (starts with `xoxb-`) |
+| `SLACK_SIGNING_SECRET` | Signing secret from Slack app Basic Information |
+| `DATABASE_URL` | PostgreSQL connection string (auto-set by Railway) |
+| `ENCRYPTION_KEY` | Generate with: `python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"` |
 
-4. **Set up local PostgreSQL**:
-   ```bash
-   createdb vibe_check
-   # Update DATABASE_URL in .env
-   ```
+**Optional:**
 
-5. **Initialize database**:
-   ```bash
-   python scripts/init_db.py
-   ```
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `ADMIN_USER_ID` | - | Your Slack user ID to set as initial admin |
+| `PORT` | 8000 | Server port |
+| `LOG_LEVEL` | INFO | Logging level |
+| `DATA_RETENTION_DAYS` | 90 | Days to keep response data |
 
-6. **Run the app**:
-   ```bash
-   python app.py
-   ```
+### 3. Create Slack App
 
-### Environment Variables
+1. Go to [api.slack.com/apps](https://api.slack.com/apps) and create a new app
+2. Use the manifest from `docs/slack_manifest.json` OR configure manually:
 
-Required variables in `.env`:
+**Bot Token Scopes** (OAuth & Permissions):
+- `chat:write` - Send messages
+- `commands` - Handle slash commands
+- `im:write` - Send DMs
+- `users:read` - Get user info
 
-```bash
-# Database
-DATABASE_URL=postgresql://user:password@localhost:5432/vibe_check
+**Slash Commands** (all use Request URL: `https://YOUR-APP-URL/slack/events`):
+- `/vibe-add-client` - Add a new client
+- `/vibe-remove-client` - Remove a client
+- `/vibe-list-clients` - List all clients
+- `/vibe-pause` - Pause standups
+- `/vibe-resume` - Resume standups
+- `/vibe-set-channel` - Set feedback channel
+- `/vibe-admin` - Manage admins
+- `/vibe-test` - Send test standup
+- `/vibe-help` - Show help
 
-# Slack App Credentials (from https://api.slack.com/apps)
-SLACK_CLIENT_ID=your_client_id
-SLACK_CLIENT_SECRET=your_client_secret
-SLACK_SIGNING_SECRET=your_signing_secret
+**Interactivity** (same Request URL):
+- Enable Interactivity
+- Request URL: `https://YOUR-APP-URL/slack/events`
 
-# Security (generate with command above)
-ENCRYPTION_KEY=your_fernet_key_here
+### 4. Install to Workspace
 
-# Application
-PORT=8000
-LOG_LEVEL=INFO
-RAILWAY_STATIC_URL=https://your-app.railway.app
+1. Go to Install App in your Slack app settings
+2. Install to your workspace
+3. Copy the Bot Token to your environment variables
 
-# Features
-ENABLE_REMINDERS=true
-REMINDER_DELAY_HOURS=4
-DATA_RETENTION_DAYS=90
-```
+### 5. Set Up Admin
 
-## Slack App Setup
+Add your Slack user ID as `ADMIN_USER_ID` environment variable, then redeploy.
 
-See [docs/SLACK_SETUP.md](docs/SLACK_SETUP.md) for detailed instructions on:
-- Creating your Slack app
-- Configuring OAuth scopes
-- Setting up slash commands
-- Enabling interactivity
-- Installing to your workspace
-
-## Deployment
-
-See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for deployment guides for:
-- Railway (recommended)
-- Heroku
-- AWS
-- Docker
+To find your user ID: Go to your Slack profile > More > Copy member ID
 
 ## Usage
 
 ### Admin Commands
 
-Once installed, use these slash commands in Slack:
-
-- `/vibe-add-client` - Add a new client to receive standups
-- `/vibe-list-clients` - View all active clients and their configs
-- `/vibe-pause` - Temporarily pause standups for a client
-- `/vibe-resume` - Resume paused standups
-- `/vibe-test` - Send a test standup to yourself
-- `/vibe-help` - Show help documentation
+| Command | Description |
+|---------|-------------|
+| `/vibe-add-client` | Add a user to receive daily standups |
+| `/vibe-remove-client` | Remove a client |
+| `/vibe-list-clients` | View all clients and their status |
+| `/vibe-pause` | Pause standups for a client |
+| `/vibe-resume` | Resume paused standups |
+| `/vibe-set-channel` | Set the feedback channel |
+| `/vibe-admin` | View/manage workspace admins |
+| `/vibe-test` | Send a test standup to yourself |
+| `/vibe-help` | Show help documentation |
 
 ### Workflow
 
-1. **Install app** to your Slack workspace
-2. **Add clients** using `/vibe-add-client`
-3. **Configure schedules** (daily or Monday-only standups)
-4. **Set vibe channel** where feedback will be posted
-5. **Clients receive** automated DMs at scheduled times
-6. **View feedback** in your private vibe check channel
+1. **Add clients** using `/vibe-add-client`
+2. **Set the feedback channel** using `/vibe-set-channel`
+3. Clients receive automated **standup DMs** at their scheduled time
+4. Clients receive **weekly feedback requests** on Fridays
+5. All feedback is posted to your private **vibe check channel**
 
-## Development
+## Architecture
 
-### Running Tests
-
-```bash
-pytest
-pytest --cov=src  # With coverage
+```
+vibe-checker/
+├── app.py                      # Main entry point
+├── requirements.txt            # Python dependencies
+├── Procfile                    # Railway deployment
+├── src/
+│   ├── config.py               # Configuration
+│   ├── app_factory.py          # Slack Bolt setup
+│   ├── models/                 # Database models
+│   ├── services/               # Business logic
+│   ├── handlers/               # Slack event handlers
+│   ├── blocks/                 # Block Kit UI
+│   ├── middleware/             # Auth & error handling
+│   └── utils/                  # Utilities
+└── docs/                       # Documentation
 ```
 
-### Database Migrations
+## Health Check
 
-```bash
-# Create migration
-alembic revision --autogenerate -m "Description"
+The app exposes a health endpoint at `/health` that returns:
 
-# Apply migrations
-alembic upgrade head
-
-# Rollback
-alembic downgrade -1
+```json
+{
+  "status": "ok",
+  "app": "running",
+  "database": "connected",
+  "scheduler": "running",
+  "scheduled_jobs": 5
+}
 ```
 
-### Code Style
-
-```bash
-# Format code
-black src/
-
-# Lint
-flake8 src/
-```
-
-## TODO / Future Enhancements
-
-- [ ] Complete state extraction in action handlers (currently simplified)
-- [ ] Add analytics dashboard command `/vibe-analytics`
-- [ ] Implement reminder jobs for non-responses
-- [ ] Add `/vibe-config-standup` and `/vibe-config-feedback` commands
-- [ ] Create App Home tab with stats
-- [ ] Add data export functionality
-- [ ] Implement GDPR compliance endpoints
-- [ ] Add unit and integration tests
-- [ ] Set up CI/CD pipeline
-- [ ] Add monitoring and alerting
-
-## Troubleshooting
-
-### Common Issues
-
-**Database connection errors**:
-- Verify DATABASE_URL is correct
-- Ensure PostgreSQL is running
-- Check network/firewall settings
-
-**Slack API errors**:
-- Verify all environment variables are set
-- Check Slack app configuration matches docs
-- Ensure bot has required scopes
-
-**Jobs not running**:
-- Check scheduler is initialized (logs should show "APScheduler started")
-- Verify jobs are added (check `apscheduler_jobs` table)
-- Check timezone settings
-
-### Logs
-
-View application logs:
-```bash
-# Local
-python app.py  # Logs to stdout
-
-# Railway
-railway logs  # Live logs
-```
+Use this for monitoring and load balancer health checks.
 
 ## Security
 
-- Tokens encrypted at rest using Fernet symmetric encryption
-- Request signature verification enabled
-- Admin-only command access
-- Secure OAuth flow
-- No sensitive data in logs
+- Bot tokens encrypted at rest using Fernet
+- Request signature verification for all Slack requests
+- Role-based admin access for commands
+- Automatic data retention cleanup
+- No sensitive data logged
 
-## Contributing
+## Data Retention
 
-This is a custom internal tool. For issues or enhancements:
-1. Document the issue/feature
-2. Make changes in a branch
-3. Test thoroughly
-4. Deploy to staging first
+By default, standup and feedback responses older than 90 days are automatically deleted.
+Configure with `DATA_RETENTION_DAYS` environment variable.
+
+Cleanup runs weekly on Sundays at 2:00 AM UTC.
+
+## Troubleshooting
+
+### "You don't have permission" error
+
+1. Ensure `ADMIN_USER_ID` is set to your Slack user ID
+2. Redeploy the app
+3. Check logs for "Successfully added X as admin"
+
+### Commands not working
+
+1. Verify all slash command URLs in Slack app settings
+2. Check that Interactivity Request URL is set
+3. Ensure bot is in channels where you're using commands
+
+### Check logs
+
+Railway: Dashboard > Select service > View Logs
+
+Look for:
+- `Vibe Check is ready!` - App started successfully
+- `ADMIN_USER_ID env var:` - Admin configuration
+- Error messages with stack traces
+
+## Local Development
+
+```bash
+# Clone and setup
+git clone <repo-url>
+cd vibe-checker
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+
+# Configure
+cp .env.example .env
+# Edit .env with your values
+
+# Run with ngrok for Slack webhooks
+ngrok http 8000
+# Update Slack app URLs with ngrok URL
+
+# Start app
+python app.py
+```
 
 ## License
 
-Proprietary - Internal use only
-
-## Support
-
-For questions or issues:
-- Check logs first
-- Review [DEPLOYMENT.md](docs/DEPLOYMENT.md)
-- Check [SLACK_SETUP.md](docs/SLACK_SETUP.md)
-- Contact the development team
+MIT License - See LICENSE file for details.
 
 ---
 
-Built with ❤️ using Slack Bolt for Python
+Built with Slack Bolt for Python

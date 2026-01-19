@@ -130,3 +130,56 @@ def validate_rating(rating: int, min_val: int = 1, max_val: int = 5) -> bool:
         True if valid, False otherwise
     """
     return isinstance(rating, int) and min_val <= rating <= max_val
+
+
+# Text input limits for Block Kit and database storage
+TEXT_LIMITS = {
+    'accomplishments': 3000,
+    'working_on': 3000,
+    'blockers': 3000,
+    'feeling_text': 3000,
+    'improvements': 3000,
+    'display_name': 255,
+    'default': 3000
+}
+
+
+def sanitize_text_input(text: Optional[str], field_name: str = 'default') -> str:
+    """
+    Sanitize and truncate text input to safe limits.
+
+    Args:
+        text: Input text (may be None)
+        field_name: Name of the field for limit lookup
+
+    Returns:
+        Sanitized text, empty string if None
+    """
+    if text is None:
+        return ""
+
+    # Get limit for this field
+    limit = TEXT_LIMITS.get(field_name, TEXT_LIMITS['default'])
+
+    # Strip whitespace and truncate
+    sanitized = text.strip()[:limit]
+
+    return sanitized
+
+
+def validate_text_length(text: str, field_name: str = 'default') -> bool:
+    """
+    Check if text is within allowed length.
+
+    Args:
+        text: Text to validate
+        field_name: Name of the field for limit lookup
+
+    Returns:
+        True if within limits, False otherwise
+    """
+    if text is None:
+        return True
+
+    limit = TEXT_LIMITS.get(field_name, TEXT_LIMITS['default'])
+    return len(text) <= limit

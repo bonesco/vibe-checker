@@ -7,6 +7,7 @@ from src.services.standup_service import save_standup_response
 from src.services.feedback_service import save_feedback_response
 from src.services.workspace_service import get_workspace_by_team_id
 from src.utils.logger import setup_logger
+from src.utils.validators import sanitize_text_input
 
 logger = setup_logger(__name__)
 
@@ -37,10 +38,19 @@ def register(app):
             # Extract form values from Block Kit state
             state_values = body["state"]["values"]
 
-            # Extract input values using block_id and action_id
-            accomplishments = state_values.get(f"accomplishments_{client_id}_{date_str}", {}).get("accomplishments_input", {}).get("value", "")
-            working_on = state_values.get(f"working_on_{client_id}_{date_str}", {}).get("working_on_input", {}).get("value", "")
-            blockers = state_values.get(f"blockers_{client_id}_{date_str}", {}).get("blockers_input", {}).get("value", "")
+            # Extract and sanitize input values
+            accomplishments = sanitize_text_input(
+                state_values.get(f"accomplishments_{client_id}_{date_str}", {}).get("accomplishments_input", {}).get("value"),
+                'accomplishments'
+            )
+            working_on = sanitize_text_input(
+                state_values.get(f"working_on_{client_id}_{date_str}", {}).get("working_on_input", {}).get("value"),
+                'working_on'
+            )
+            blockers = sanitize_text_input(
+                state_values.get(f"blockers_{client_id}_{date_str}", {}).get("blockers_input", {}).get("value"),
+                'blockers'
+            )
 
             # Get workspace
             workspace = get_workspace_by_team_id(body["team"]["id"])
@@ -133,10 +143,19 @@ def register(app):
             except (ValueError, TypeError):
                 satisfaction_rating = 3
 
-            # Extract text inputs
-            feeling_text = state_values.get(f"feeling_text_{client_id}_{week_str}", {}).get("feeling_text_input", {}).get("value", "")
-            improvements = state_values.get(f"improvements_{client_id}_{week_str}", {}).get("improvements_input", {}).get("value", "")
-            blockers = state_values.get(f"blockers_{client_id}_{week_str}", {}).get("blockers_input", {}).get("value", "")
+            # Extract and sanitize text inputs
+            feeling_text = sanitize_text_input(
+                state_values.get(f"feeling_text_{client_id}_{week_str}", {}).get("feeling_text_input", {}).get("value"),
+                'feeling_text'
+            )
+            improvements = sanitize_text_input(
+                state_values.get(f"improvements_{client_id}_{week_str}", {}).get("improvements_input", {}).get("value"),
+                'improvements'
+            )
+            blockers = sanitize_text_input(
+                state_values.get(f"blockers_{client_id}_{week_str}", {}).get("blockers_input", {}).get("value"),
+                'blockers'
+            )
 
             # Save response and post to vibe channel
             save_feedback_response(

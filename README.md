@@ -8,8 +8,12 @@ Professional Slack app for managing client relationships through automated daily
 - **Weekly Feedback**: Friday feedback collection with satisfaction ratings
 - **Private & Secure**: All responses are private until posted to your vibe check channel
 - **Admin Controls**: Role-based access for managing clients and settings
+- **Web Admin Dashboard**: Browser-based dashboard for analytics and management
+- **Multi-Workspace Support**: OAuth-based installation for distribution
 - **Data Retention**: Automatic cleanup of old data (configurable)
 - **Health Monitoring**: Built-in health check endpoint for monitoring
+- **Rate Limiting**: Production-ready with built-in rate limiting
+- **Security Headers**: HSTS, CSP, and other security headers enabled
 
 ## Quick Start
 
@@ -34,11 +38,26 @@ Professional Slack app for managing client relationships through automated daily
 | `DATABASE_URL` | PostgreSQL connection string (auto-set by Railway) |
 | `ENCRYPTION_KEY` | Generate with: `python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"` |
 
-**Optional:**
+**For OAuth/Multi-Workspace (Optional):**
+
+| Variable | Description |
+|----------|-------------|
+| `SLACK_CLIENT_ID` | Client ID from Slack app (for OAuth installation) |
+| `SLACK_CLIENT_SECRET` | Client Secret from Slack app (for OAuth installation) |
+
+**For Admin Dashboard (Optional):**
+
+| Variable | Description |
+|----------|-------------|
+| `ADMIN_DASHBOARD_SECRET` | Password for web admin dashboard at `/admin` |
+| `FLASK_SECRET_KEY` | Session encryption key (auto-generated if not set) |
+
+**Other Optional:**
 
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `ADMIN_USER_ID` | - | Your Slack user ID to set as initial admin |
+| `APP_URL` | - | Public URL of your app (for OAuth redirects) |
 | `PORT` | 8000 | Server port |
 | `LOG_LEVEL` | INFO | Logging level |
 | `DATA_RETENTION_DAYS` | 90 | Days to keep response data |
@@ -123,6 +142,50 @@ vibe-checker/
 │   └── utils/                  # Utilities
 └── docs/                       # Documentation
 ```
+
+## Admin Dashboard
+
+The app includes a web-based admin dashboard at `/admin` for managing your installation.
+
+### Features:
+- **Dashboard**: Overview of clients, responses, and scheduler status
+- **Client Management**: View, pause, resume, and delete clients
+- **Analytics**: Response metrics and satisfaction trends
+- **Scheduled Jobs**: Monitor APScheduler jobs
+- **Settings**: View workspace configuration
+
+### Enabling the Dashboard:
+Set the `ADMIN_DASHBOARD_SECRET` environment variable to enable authentication:
+
+```bash
+ADMIN_DASHBOARD_SECRET=your-secure-password-here
+```
+
+Then access `https://your-app-url/admin` and log in with your password.
+
+## Multi-Workspace Distribution
+
+To allow other workspaces to install your app via OAuth:
+
+### 1. Configure OAuth in Slack App Settings:
+
+1. Go to **OAuth & Permissions** in your Slack app
+2. Add a Redirect URL: `https://your-app-url/slack/oauth_redirect`
+3. Copy the **Client ID** and **Client Secret**
+
+### 2. Set Environment Variables:
+
+```bash
+SLACK_CLIENT_ID=your-client-id
+SLACK_CLIENT_SECRET=your-client-secret
+APP_URL=https://your-app-url
+```
+
+### 3. Share Installation Link:
+
+Users can install your app at: `https://your-app-url/slack/add`
+
+Or use the "Add to Slack" button that appears on your homepage.
 
 ## Health Check
 

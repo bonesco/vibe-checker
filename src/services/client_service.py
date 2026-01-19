@@ -68,26 +68,30 @@ def add_client(
         session.add(client)
         session.flush()  # Get client ID
 
-        # Create standup config
+        # Create standup config - use relationship to ensure proper ORM linking
         standup_config = StandupConfig(
-            client_id=client.id,
             schedule_type=schedule_type,
             schedule_time=schedule_time,
             is_paused=False
         )
+        # Set relationship directly so ORM properly links objects
+        standup_config.client = client
+        client.standup_config = standup_config
         session.add(standup_config)
 
         # Create feedback config (enabled by default)
         feedback_config = FeedbackConfig(
-            client_id=client.id,
             schedule_time=dt_time(15, 0),  # 3 PM default
             is_enabled=True
         )
+        # Set relationship directly so ORM properly links objects
+        feedback_config.client = client
+        client.feedback_config = feedback_config
         session.add(feedback_config)
 
         session.flush()
 
-        # Schedule jobs
+        # Schedule jobs - now relationships are properly established
         add_standup_job(standup_config)
         add_feedback_job(feedback_config)
 

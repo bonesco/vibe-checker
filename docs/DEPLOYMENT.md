@@ -44,13 +44,23 @@ Railway provides the easiest deployment experience with automatic PostgreSQL pro
 In Railway dashboard, go to your app → **Variables** tab:
 
 ```bash
-# Slack credentials (from api.slack.com/apps)
-SLACK_CLIENT_ID=<your_value>
-SLACK_CLIENT_SECRET=<your_value>
+# Required - Slack credentials (from api.slack.com/apps)
+SLACK_BOT_TOKEN=xoxb-...        # For single-workspace mode
 SLACK_SIGNING_SECRET=<your_value>
 
 # Generate encryption key
 ENCRYPTION_KEY=<generate_with_fernet>
+
+# Admin setup
+ADMIN_USER_ID=U12345...         # Your Slack user ID
+
+# Optional - Admin Dashboard (recommended)
+ADMIN_DASHBOARD_SECRET=<secure_password>   # For web dashboard at /admin
+
+# Optional - OAuth for multi-workspace (for distribution)
+SLACK_CLIENT_ID=<your_value>
+SLACK_CLIENT_SECRET=<your_value>
+APP_URL=https://your-app.railway.app
 
 # Application settings
 PORT=8000
@@ -118,13 +128,27 @@ Now update your Slack app with the Railway URL:
 
 ### Step 8: Install to Workspace
 
-1. Go to your app URL: `https://your-app.railway.app`
+**Option A: Single-Workspace Mode (Recommended for private use)**
 
+1. In Slack app settings, go to **Install App**
+2. Click "Install to Workspace"
+3. Copy the **Bot User OAuth Token** to `SLACK_BOT_TOKEN`
+4. Set `ADMIN_USER_ID` to your Slack user ID
+5. Redeploy - the app auto-bootstraps!
+
+**Option B: OAuth Mode (For distribution)**
+
+1. Go to your app URL: `https://your-app.railway.app/slack/add`
 2. Click **"Add to Slack"**
-
 3. Authorize the app
-
 4. You're live! 🎉
+
+### Step 9: Access Admin Dashboard
+
+1. Set `ADMIN_DASHBOARD_SECRET` environment variable
+2. Go to `https://your-app.railway.app/admin`
+3. Log in with your password
+4. View analytics, manage clients, monitor jobs
 
 ### Step 9: Set Up Vibe Check Channel
 

@@ -64,6 +64,9 @@ def init_scheduler():
     # Load existing jobs from database
     sync_jobs_from_database()
 
+    # Add data retention cleanup job
+    add_data_retention_job()
+
     return scheduler
 
 
@@ -262,3 +265,84 @@ def get_scheduled_jobs():
         })
 
     return jobs
+
+
+def get_scheduler():
+    """
+    Get the global scheduler instance.
+
+    Returns:
+        BackgroundScheduler instance or None if not initialized
+    """
+    return scheduler
+
+
+def add_data_retention_job():
+    """
+    Add a weekly job to clean up old responses based on DATA_RETENTION_DAYS.
+
+    Runs every Sunday at 2:00 AM UTC.
+    """
+    if not scheduler:
+        logger.error("Scheduler not initialized")
+        return
+
+    job_id = "data_retention_cleanup"
+
+    # Remove existing job if present
+    if scheduler.get_job(job_id):
+        scheduler.remove_job(job_id)
+
+    # Create weekly trigger (Sundays at 2:00 AM UTC)
+    trigger = CronTrigger(
+        day_of_week='sun',
+        hour=2,
+        minute=0,
+        timezone='UTC'
+    )
+
+    scheduler.add_job(
+        func=run_data_retention_cleanup,
+        trigger=trigger,
+        id=job_id,
+        replace_existing=True,
+        name="Data Retention Cleanup"
+    )
+
+    logger.info(f"Scheduled data retention cleanup job (Sundays at 2:00 AM UTC, {config.DATA_RETENTION_DAYS} days retention)")
+
+
+def run_data_retention_cleanup():
+    """
+    Delete standup and feedback responses older than DATA_RETENTION_DAYS.
+
+    This ensures compliance with data retention policies and keeps the database lean.
+    """
+    from datetime import date, timedelta
+    from src.database.session import db_transaction
+    from src.models.standup_response import StandupResponse
+    from src.models.feedback_response import FeedbackResponse
+
+    cutoff_date = date.today() - timedelta(days=config.DATA_RETENTION_DAYS)
+
+    try:
+        with db_transaction() as session:
+            # Delete old standup responses
+            standup_count = session.query(StandupResponse).filter(
+                StandupResponse.scheduled_date < cutoff_date
+            ).delete()
+
+            # Delete old feedback responses
+            feedback_count = session.query(FeedbackResponse).filter(
+                FeedbackResponse.week_ending < cutoff_date
+            ).delete()
+
+            logger.info(
+                f"Data retention cleanup complete: deleted {standup_count} standups, "
+                f"{feedback_count} feedback responses older than {cutoff_date}"
+            )
+
+    except Exception as e:
+        logger.error(f"Data retention cleanup failed: {e}")
+        import traceback
+        logger.error(traceback.format_exc())

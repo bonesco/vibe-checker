@@ -82,12 +82,25 @@ def init_full_app():
             print("Workspace already exists.", flush=True)
             # Check if ADMIN_USER_ID env var is set and add as admin if not already
             admin_user_id = os.environ.get("ADMIN_USER_ID")
+            print(f"ADMIN_USER_ID env var: {admin_user_id}", flush=True)
+
             if admin_user_id:
                 from src.services.workspace_service import add_admin
                 workspace = get_workspace_by_team_id(team_id)
-                if workspace and admin_user_id not in (workspace.admin_user_ids or []):
-                    add_admin(workspace.id, admin_user_id)
-                    print(f"Added {admin_user_id} as admin", flush=True)
+                current_admins = workspace.admin_user_ids or [] if workspace else []
+                print(f"Current admins: {current_admins}", flush=True)
+
+                if workspace and admin_user_id not in current_admins:
+                    if add_admin(workspace.id, admin_user_id):
+                        print(f"Successfully added {admin_user_id} as admin", flush=True)
+                    else:
+                        print(f"Failed to add {admin_user_id} as admin", flush=True)
+                elif workspace and admin_user_id in current_admins:
+                    print(f"User {admin_user_id} is already an admin", flush=True)
+
+                # Verify the change
+                workspace = get_workspace_by_team_id(team_id)
+                print(f"Verified admins: {workspace.admin_user_ids if workspace else 'N/A'}", flush=True)
 
         # Create Slack app
         print("Creating Slack app...", flush=True)

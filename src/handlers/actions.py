@@ -20,9 +20,19 @@ def register(app):
         ack()
         try:
             # Parse client_id and date from action value
-            client_id, date_str = action["value"].split("|")
-            client_id = int(client_id)
-            scheduled_date = date.fromisoformat(date_str)
+            value_parts = action["value"].split("|")
+            if len(value_parts) != 2:
+                logger.error(f"Invalid standup action value format: {action['value']}")
+                return
+
+            try:
+                client_id = int(value_parts[0])
+                scheduled_date = date.fromisoformat(value_parts[1])
+            except (ValueError, IndexError) as e:
+                logger.error(f"Failed to parse standup action value: {e}")
+                return
+
+            date_str = value_parts[1]
 
             # Extract form values from Block Kit state
             state_values = body["state"]["values"]
@@ -34,6 +44,9 @@ def register(app):
 
             # Get workspace
             workspace = get_workspace_by_team_id(body["team"]["id"])
+            if not workspace:
+                logger.error(f"Workspace not found for team {body['team']['id']}")
+                return
 
             # Save response
             save_standup_response(
@@ -84,22 +97,41 @@ def register(app):
         ack()
         try:
             # Parse client_id and week_ending from action value
-            client_id, week_str = action["value"].split("|")
-            client_id = int(client_id)
-            week_ending = date.fromisoformat(week_str)
+            value_parts = action["value"].split("|")
+            if len(value_parts) != 2:
+                logger.error(f"Invalid feedback action value format: {action['value']}")
+                return
+
+            try:
+                client_id = int(value_parts[0])
+                week_ending = date.fromisoformat(value_parts[1])
+            except (ValueError, IndexError) as e:
+                logger.error(f"Failed to parse feedback action value: {e}")
+                return
+
+            week_str = value_parts[1]
 
             # Get workspace
             workspace = get_workspace_by_team_id(body["team"]["id"])
+            if not workspace:
+                logger.error(f"Workspace not found for team {body['team']['id']}")
+                return
 
             # Extract form values from Block Kit state
             state_values = body["state"]["values"]
 
-            # Extract ratings from dropdowns
+            # Extract ratings from dropdowns with safe parsing
             feeling_rating_block = state_values.get(f"feeling_rating_{client_id}_{week_str}", {})
-            feeling_rating = int(feeling_rating_block.get("feeling_rating_select", {}).get("selected_option", {}).get("value", "3"))
+            try:
+                feeling_rating = int(feeling_rating_block.get("feeling_rating_select", {}).get("selected_option", {}).get("value", "3"))
+            except (ValueError, TypeError):
+                feeling_rating = 3
 
             satisfaction_rating_block = state_values.get(f"satisfaction_rating_{client_id}_{week_str}", {})
-            satisfaction_rating = int(satisfaction_rating_block.get("satisfaction_rating_select", {}).get("selected_option", {}).get("value", "3"))
+            try:
+                satisfaction_rating = int(satisfaction_rating_block.get("satisfaction_rating_select", {}).get("selected_option", {}).get("value", "3"))
+            except (ValueError, TypeError):
+                satisfaction_rating = 3
 
             # Extract text inputs
             feeling_text = state_values.get(f"feeling_text_{client_id}_{week_str}", {}).get("feeling_text_input", {}).get("value", "")

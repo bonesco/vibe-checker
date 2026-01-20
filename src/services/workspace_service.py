@@ -49,6 +49,9 @@ def create_workspace(
             if installer_user_id not in (existing.admin_user_ids or []):
                 existing.admin_user_ids = (existing.admin_user_ids or []) + [installer_user_id]
 
+            session.flush()
+            # Expunge to detach from session with loaded data
+            session.expunge(existing)
             logger.info(f"Updated workspace: {team_id}")
             return existing
         else:
@@ -63,6 +66,9 @@ def create_workspace(
                 admin_user_ids=[installer_user_id]
             )
             session.add(workspace)
+            session.flush()  # Get the ID assigned
+            # Expunge to detach from session with loaded data
+            session.expunge(workspace)
             logger.info(f"Created new workspace: {team_id}")
             return workspace
 
@@ -71,7 +77,11 @@ def get_workspace_by_team_id(team_id: str) -> Optional[Workspace]:
     """Get workspace by Slack team ID"""
     session = get_session()
     try:
-        return session.query(Workspace).filter_by(team_id=team_id).first()
+        workspace = session.query(Workspace).filter_by(team_id=team_id).first()
+        if workspace:
+            # Expunge to detach from session with loaded data
+            session.expunge(workspace)
+        return workspace
     finally:
         session.close()
 
@@ -80,7 +90,11 @@ def get_workspace_by_id(workspace_id: int) -> Optional[Workspace]:
     """Get workspace by database ID"""
     session = get_session()
     try:
-        return session.query(Workspace).filter_by(id=workspace_id).first()
+        workspace = session.query(Workspace).filter_by(id=workspace_id).first()
+        if workspace:
+            # Expunge to detach from session with loaded data
+            session.expunge(workspace)
+        return workspace
     finally:
         session.close()
 

@@ -137,72 +137,141 @@ def create_flask_app(slack_app: App) -> Flask:
             <head>
                 <meta charset="UTF-8">
                 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                <title>Vibe Check - Slack App</title>
+                <title>Vibe Check - Slack App for Team Check-ins</title>
+                <meta name="description" content="Automated daily standups and Friday vibe checks for Slack. Keep your team connected with fun, authentic check-ins.">
                 <style>
-                    * { box-sizing: border-box; }
+                    * { box-sizing: border-box; margin: 0; padding: 0; }
                     body {
                         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-                        max-width: 600px;
-                        margin: 0 auto;
-                        padding: 40px 20px;
                         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
                         min-height: 100vh;
+                        padding: 40px 20px;
                     }
-                    .card {
+                    .container {
+                        max-width: 700px;
+                        margin: 0 auto;
+                    }
+                    .hero {
                         background: white;
-                        border-radius: 16px;
-                        padding: 40px;
+                        border-radius: 20px;
+                        padding: 50px 40px;
                         box-shadow: 0 20px 60px rgba(0,0,0,0.3);
                         text-align: center;
+                        margin-bottom: 24px;
                     }
-                    h1 { color: #333; margin-bottom: 10px; }
-                    .subtitle { color: #666; margin-bottom: 30px; }
-                    .commands {
-                        text-align: left;
-                        background: #f8f9fa;
+                    .logo { font-size: 48px; margin-bottom: 8px; }
+                    h1 { color: #333; font-size: 36px; margin-bottom: 12px; }
+                    .tagline { color: #666; font-size: 18px; margin-bottom: 32px; }
+                    .slack-btn {
+                        display: inline-flex;
+                        align-items: center;
+                        padding: 16px 32px;
+                        background: #4A154B;
+                        color: white;
+                        text-decoration: none;
                         border-radius: 8px;
-                        padding: 20px;
-                        margin: 20px 0;
+                        font-size: 18px;
+                        font-weight: 600;
+                        transition: all 0.2s;
+                        margin-bottom: 24px;
                     }
-                    .commands h3 { margin-top: 0; color: #333; }
-                    .commands code {
-                        background: #e9ecef;
-                        padding: 2px 6px;
-                        border-radius: 4px;
+                    .slack-btn:hover {
+                        background: #611f69;
+                        transform: translateY(-2px);
+                        box-shadow: 0 4px 12px rgba(74, 21, 75, 0.4);
+                    }
+                    .slack-btn svg {
+                        width: 24px;
+                        height: 24px;
+                        margin-right: 12px;
+                    }
+                    .features {
+                        display: grid;
+                        grid-template-columns: repeat(2, 1fr);
+                        gap: 16px;
+                        margin: 32px 0;
+                        text-align: left;
+                    }
+                    .feature {
+                        background: #f8f9fa;
+                        padding: 20px;
+                        border-radius: 12px;
+                    }
+                    .feature h3 {
+                        color: #333;
+                        font-size: 16px;
+                        margin-bottom: 6px;
+                    }
+                    .feature p {
+                        color: #666;
+                        font-size: 14px;
+                        line-height: 1.4;
+                    }
+                    .links {
+                        margin-top: 24px;
+                        padding-top: 24px;
+                        border-top: 1px solid #eee;
+                    }
+                    .links a {
+                        color: #667eea;
+                        text-decoration: none;
+                        margin: 0 12px;
                         font-size: 14px;
                     }
-                    .commands ul { padding-left: 20px; }
-                    .commands li { margin: 8px 0; color: #555; }
-                    .status {
-                        display: inline-block;
-                        background: #28a745;
-                        color: white;
-                        padding: 4px 12px;
-                        border-radius: 20px;
-                        font-size: 12px;
-                        margin-bottom: 20px;
+                    .links a:hover { text-decoration: underline; }
+                    .footer {
+                        text-align: center;
+                        color: rgba(255,255,255,0.8);
+                        font-size: 14px;
+                    }
+                    .footer a { color: white; }
+                    @media (max-width: 500px) {
+                        .features { grid-template-columns: 1fr; }
+                        .hero { padding: 30px 20px; }
                     }
                 </style>
             </head>
             <body>
-                <div class="card">
-                    <div class="status">Running</div>
-                    <h1>Vibe Check</h1>
-                    <p class="subtitle">Client feedback and standup management for Slack</p>
+                <div class="container">
+                    <div class="hero">
+                        <div class="logo">✨</div>
+                        <h1>Vibe Check</h1>
+                        <p class="tagline">Daily standups & Friday vibe checks for Slack</p>
 
-                    <div class="commands">
-                        <h3>Quick Start</h3>
-                        <ul>
-                            <li><code>/vibe-help</code> - Show all commands</li>
-                            <li><code>/vibe-add-client</code> - Add a client for standups</li>
-                            <li><code>/vibe-test</code> - Send a test standup</li>
-                        </ul>
+                        <a href="/slack/add" class="slack-btn">
+                            <svg viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M5.042 15.165a2.528 2.528 0 0 1-2.52 2.523A2.528 2.528 0 0 1 0 15.165a2.527 2.527 0 0 1 2.522-2.52h2.52v2.52zM6.313 15.165a2.527 2.527 0 0 1 2.521-2.52 2.527 2.527 0 0 1 2.521 2.52v6.313A2.528 2.528 0 0 1 8.834 24a2.528 2.528 0 0 1-2.521-2.522v-6.313zM8.834 5.042a2.528 2.528 0 0 1-2.521-2.52A2.528 2.528 0 0 1 8.834 0a2.528 2.528 0 0 1 2.521 2.522v2.52H8.834zM8.834 6.313a2.528 2.528 0 0 1 2.521 2.521 2.528 2.528 0 0 1-2.521 2.521H2.522A2.528 2.528 0 0 1 0 8.834a2.528 2.528 0 0 1 2.522-2.521h6.312zM18.956 8.834a2.528 2.528 0 0 1 2.522-2.521A2.528 2.528 0 0 1 24 8.834a2.528 2.528 0 0 1-2.522 2.521h-2.522V8.834zM17.688 8.834a2.528 2.528 0 0 1-2.523 2.521 2.527 2.527 0 0 1-2.52-2.521V2.522A2.527 2.527 0 0 1 15.165 0a2.528 2.528 0 0 1 2.523 2.522v6.312zM15.165 18.956a2.528 2.528 0 0 1 2.523 2.522A2.528 2.528 0 0 1 15.165 24a2.527 2.527 0 0 1-2.52-2.522v-2.522h2.52zM15.165 17.688a2.527 2.527 0 0 1-2.52-2.523 2.526 2.526 0 0 1 2.52-2.52h6.313A2.527 2.527 0 0 1 24 15.165a2.528 2.528 0 0 1-2.522 2.523h-6.313z"/>
+                            </svg>
+                            Add to Slack
+                        </a>
+
+                        <div class="features">
+                            <div class="feature">
+                                <h3>Daily Standups</h3>
+                                <p>Automated DMs to check in on progress, plans, and blockers</p>
+                            </div>
+                            <div class="feature">
+                                <h3>Friday Vibe Checks</h3>
+                                <p>Fun end-of-week check-ins to see how everyone's really doing</p>
+                            </div>
+                            <div class="feature">
+                                <h3>Flexible Scheduling</h3>
+                                <p>Daily or weekly, with timezone support for remote teams</p>
+                            </div>
+                            <div class="feature">
+                                <h3>Private & Secure</h3>
+                                <p>Responses stay private until shared to your team channel</p>
+                            </div>
+                        </div>
+
+                        <div class="links">
+                            <a href="/health">Health Status</a>
+                            <a href="/admin">Admin Dashboard</a>
+                        </div>
                     </div>
 
-                    <p style="color: #888; font-size: 14px;">
-                        Health check: <a href="/health">/health</a><br>
-                        Admin dashboard: <a href="/admin">/admin</a><br>
-                        <a href="/slack/add" style="display: inline-block; margin-top: 16px; padding: 10px 20px; background: #4A154B; color: white; text-decoration: none; border-radius: 6px;">Add to Slack</a>
+                    <p class="footer">
+                        Made with care for happier teams
                     </p>
                 </div>
             </body>

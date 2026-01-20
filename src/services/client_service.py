@@ -25,7 +25,8 @@ def add_client(
     email: Optional[str],
     timezone: str,
     schedule_type: str,
-    schedule_time: dt_time
+    schedule_time: dt_time,
+    vibe_check_enabled: bool = True
 ) -> Client:
     """
     Add a new client with default configurations
@@ -38,6 +39,7 @@ def add_client(
         timezone: Client timezone
         schedule_type: 'daily' or 'monday_only'
         schedule_time: Time to send standups
+        vibe_check_enabled: Whether to enable Friday vibe checks (default: True)
 
     Returns:
         Created Client instance
@@ -79,10 +81,10 @@ def add_client(
         client.standup_config = standup_config
         session.add(standup_config)
 
-        # Create feedback config (enabled by default)
+        # Create feedback config (Friday vibe checks)
         feedback_config = FeedbackConfig(
             schedule_time=dt_time(15, 0),  # 3 PM default
-            is_enabled=True
+            is_enabled=vibe_check_enabled
         )
         # Set relationship directly so ORM properly links objects
         feedback_config.client = client
@@ -93,7 +95,8 @@ def add_client(
 
         # Schedule jobs - now relationships are properly established
         add_standup_job(standup_config)
-        add_feedback_job(feedback_config)
+        if vibe_check_enabled:
+            add_feedback_job(feedback_config)
 
         logger.info(f"Added client: {slack_user_id} (ID: {client.id})")
         return client

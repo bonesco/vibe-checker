@@ -113,6 +113,47 @@ def get_add_client_modal() -> Dict[str, Any]:
                     "type": "plain_text",
                     "text": "Standup Time"
                 }
+            },
+            {
+                "type": "divider"
+            },
+            {
+                "type": "section",
+                "text": {
+                    "type": "mrkdwn",
+                    "text": "*Friday Vibe Check*\nA fun end-of-week check-in to see how they're really feeling."
+                }
+            },
+            {
+                "type": "input",
+                "block_id": "vibe_check",
+                "optional": True,
+                "element": {
+                    "type": "checkboxes",
+                    "action_id": "vibe_check_toggle",
+                    "initial_options": [
+                        {
+                            "value": "enabled",
+                            "text": {
+                                "type": "plain_text",
+                                "text": "Enable Friday Vibe Checks (3 PM)"
+                            }
+                        }
+                    ],
+                    "options": [
+                        {
+                            "value": "enabled",
+                            "text": {
+                                "type": "plain_text",
+                                "text": "Enable Friday Vibe Checks (3 PM)"
+                            }
+                        }
+                    ]
+                },
+                "label": {
+                    "type": "plain_text",
+                    "text": "Weekly Vibe Check"
+                }
             }
         ]
     }

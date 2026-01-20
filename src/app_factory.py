@@ -102,9 +102,10 @@ def create_flask_app(slack_app: App) -> Flask:
 
         # Check database connection
         try:
+            from sqlalchemy import text
             from src.database.session import get_session
             session = get_session()
-            session.execute("SELECT 1")
+            session.execute(text("SELECT 1"))
             session.close()
             health["database"] = "connected"
         except Exception as e:

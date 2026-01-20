@@ -81,7 +81,7 @@ def register(app):
                      f"• Timezone: {timezone}"
             )
 
-            logger.info(f"Added new client via modal: {user_id} (ID: {new_client.id})")
+            logger.info(f"Added new client via modal: {user_id} (ID: {new_client['id']})")
 
         except ClientAlreadyExistsError:
             logger.warning(f"Attempted to add existing client: {user_id}")

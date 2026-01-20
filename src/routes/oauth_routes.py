@@ -181,7 +181,114 @@ def add_to_slack():
         scopes=','.join(settings['scopes']))
 
 
-# HTML Templates
+# HTML Templates - Modern Linear/Vercel style
+COMMON_STYLES = '''
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #0a0a0a;
+            color: #fafafa;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            -webkit-font-smoothing: antialiased;
+        }
+        .nav {
+            padding: 20px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        .nav-brand {
+            font-weight: 600;
+            font-size: 15px;
+            color: #fafafa;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .container {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 24px;
+        }
+        .card {
+            max-width: 480px;
+            width: 100%;
+        }
+        .icon-wrapper {
+            width: 48px;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 12px;
+            margin-bottom: 24px;
+        }
+        .icon-error { background: rgba(239, 68, 68, 0.1); color: #ef4444; }
+        .icon-success { background: rgba(34, 197, 94, 0.1); color: #22c55e; }
+        h1 {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            letter-spacing: -0.02em;
+        }
+        .subtitle {
+            color: #888;
+            font-size: 15px;
+            line-height: 1.6;
+            margin-bottom: 32px;
+        }
+        .error-box {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 24px;
+            color: #fca5a5;
+            font-size: 14px;
+        }
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            text-decoration: none;
+            transition: all 0.15s;
+            width: 100%;
+        }
+        .btn-primary {
+            background: #fafafa;
+            color: #0a0a0a;
+        }
+        .btn-primary:hover {
+            background: #e5e5e5;
+        }
+        .btn-secondary {
+            background: transparent;
+            color: #888;
+            border: 1px solid rgba(255,255,255,0.2);
+            margin-top: 12px;
+        }
+        .btn-secondary:hover {
+            color: #fafafa;
+            border-color: rgba(255,255,255,0.4);
+        }
+    </style>
+'''
+
 ERROR_TEMPLATE = '''
 <!DOCTYPE html>
 <html lang="en">
@@ -189,53 +296,30 @@ ERROR_TEMPLATE = '''
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Installation Error - Vibe Check</title>
-    <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        }
-        .card {
-            background: white;
-            border-radius: 16px;
-            padding: 40px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            max-width: 500px;
-            text-align: center;
-        }
-        h1 { color: #dc3545; margin-bottom: 16px; }
-        p { color: #666; line-height: 1.6; }
-        .error-box {
-            background: #fee;
-            border: 1px solid #fcc;
-            border-radius: 8px;
-            padding: 16px;
-            margin: 20px 0;
-            color: #c00;
-        }
-        a {
-            display: inline-block;
-            margin-top: 20px;
-            padding: 12px 24px;
-            background: #667eea;
-            color: white;
-            text-decoration: none;
-            border-radius: 8px;
-        }
-        a:hover { background: #5a6fd6; }
-    </style>
+''' + COMMON_STYLES + '''
 </head>
 <body>
-    <div class="card">
-        <h1>Installation Error</h1>
-        <div class="error-box">{{ error }}</div>
-        <p>Please try again or contact support if the issue persists.</p>
-        <a href="/slack/add">Try Again</a>
+    <nav class="nav">
+        <a href="/" class="nav-brand">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+            </svg>
+            Vibe Check
+        </a>
+    </nav>
+    <div class="container">
+        <div class="card">
+            <div class="icon-wrapper icon-error">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>
+                </svg>
+            </div>
+            <h1>Installation failed</h1>
+            <p class="subtitle">Something went wrong during the OAuth flow.</p>
+            <div class="error-box">{{ error }}</div>
+            <a href="/slack/add" class="btn btn-primary">Try again</a>
+            <a href="/" class="btn btn-secondary">Back to home</a>
+        </div>
     </div>
 </body>
 </html>
@@ -248,100 +332,118 @@ SUCCESS_TEMPLATE = '''
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Installation Complete - Vibe Check</title>
+''' + COMMON_STYLES + '''
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            display: flex;
+        .team-badge {
+            display: inline-flex;
             align-items: center;
-            justify-content: center;
-            padding: 20px;
-        }
-        .card {
-            background: white;
-            border-radius: 16px;
-            padding: 40px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            max-width: 600px;
-            text-align: center;
-        }
-        .success-icon {
-            width: 80px;
-            height: 80px;
-            background: #28a745;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 24px;
-        }
-        .success-icon svg {
-            width: 40px;
-            height: 40px;
-            fill: white;
-        }
-        h1 { color: #333; margin-bottom: 16px; }
-        p { color: #666; line-height: 1.6; margin-bottom: 12px; }
-        .team-name {
-            font-size: 24px;
-            color: #667eea;
-            font-weight: 600;
-            margin: 16px 0;
+            gap: 8px;
+            padding: 8px 16px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 100px;
+            font-size: 14px;
+            margin-bottom: 32px;
         }
         .steps {
-            text-align: left;
-            background: #f8f9fa;
-            border-radius: 8px;
-            padding: 20px;
-            margin: 24px 0;
+            background: rgba(255,255,255,0.02);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
         }
-        .steps h3 { margin-bottom: 12px; color: #333; }
-        .steps ol { padding-left: 20px; }
-        .steps li { margin: 8px 0; color: #555; }
-        .steps code {
-            background: #e9ecef;
+        .steps-title {
+            font-size: 13px;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 16px;
+        }
+        .step {
+            display: flex;
+            gap: 12px;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        .step:last-child { border-bottom: none; }
+        .step-num {
+            width: 24px;
+            height: 24px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 500;
+            color: #888;
+            flex-shrink: 0;
+        }
+        .step-text { font-size: 14px; color: #ccc; }
+        .step-text code {
+            background: rgba(255,255,255,0.1);
             padding: 2px 6px;
             border-radius: 4px;
+            font-family: 'SF Mono', Monaco, monospace;
+            font-size: 13px;
         }
-        a.btn {
-            display: inline-block;
-            padding: 14px 28px;
-            background: #667eea;
-            color: white;
-            text-decoration: none;
-            border-radius: 8px;
-            font-weight: 600;
-            margin-top: 16px;
+        .admin-note {
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 24px;
         }
-        a.btn:hover { background: #5a6fd6; }
     </style>
 </head>
 <body>
-    <div class="card">
-        <div class="success-icon">
-            <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+    <nav class="nav">
+        <a href="/" class="nav-brand">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+            </svg>
+            Vibe Check
+        </a>
+    </nav>
+    <div class="container">
+        <div class="card">
+            <div class="icon-wrapper icon-success">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M20 6L9 17l-5-5"/>
+                </svg>
+            </div>
+            <h1>Installation complete</h1>
+            <p class="subtitle">Vibe Check has been added to your workspace.</p>
+            <div class="team-badge">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" opacity="0.5">
+                    <path d="M5.042 15.165a2.528 2.528 0 0 1-2.52 2.523A2.528 2.528 0 0 1 0 15.165a2.527 2.527 0 0 1 2.522-2.52h2.52v2.52z"/>
+                </svg>
+                {{ team_name }}
+            </div>
+
+            <div class="steps">
+                <div class="steps-title">Get started</div>
+                <div class="step">
+                    <span class="step-num">1</span>
+                    <span class="step-text">Type <code>/vibe-help</code> to see all commands</span>
+                </div>
+                <div class="step">
+                    <span class="step-num">2</span>
+                    <span class="step-text">Set your channel with <code>/vibe-set-channel</code></span>
+                </div>
+                <div class="step">
+                    <span class="step-num">3</span>
+                    <span class="step-text">Add team members with <code>/vibe-add-client</code></span>
+                </div>
+                <div class="step">
+                    <span class="step-num">4</span>
+                    <span class="step-text">Test it with <code>/vibe-test</code></span>
+                </div>
+            </div>
+
+            <p class="admin-note">You ({{ installer_id }}) are now an admin.</p>
+
+            <a href="slack://open" class="btn btn-primary">Open Slack</a>
+            <a href="/admin" class="btn btn-secondary">Go to Dashboard</a>
         </div>
-        <h1>Installation Complete!</h1>
-        <p>Vibe Check has been installed to</p>
-        <div class="team-name">{{ team_name }}</div>
-
-        <div class="steps">
-            <h3>Next Steps</h3>
-            <ol>
-                <li>Go to Slack and type <code>/vibe-help</code> to see all commands</li>
-                <li>Set up your feedback channel with <code>/vibe-set-channel</code></li>
-                <li>Add your first client with <code>/vibe-add-client</code></li>
-                <li>Test it out with <code>/vibe-test</code></li>
-            </ol>
-        </div>
-
-        <p style="font-size: 14px; color: #888;">
-            You (<code>{{ installer_id }}</code>) are now an admin for this installation.
-        </p>
-
-        <a href="https://slack.com/app_redirect?app=vibe-check" class="btn">Open in Slack</a>
     </div>
 </body>
 </html>
@@ -354,121 +456,114 @@ ADD_TO_SLACK_TEMPLATE = '''
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Install Vibe Check for Slack</title>
+''' + COMMON_STYLES + '''
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
+        .features {
+            display: grid;
+            gap: 1px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 12px;
+            overflow: hidden;
+            margin-bottom: 32px;
+        }
+        .feature {
+            background: #0a0a0a;
+            padding: 20px;
+            display: flex;
+            gap: 16px;
+            align-items: flex-start;
+        }
+        .feature-icon {
+            width: 32px;
+            height: 32px;
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 20px;
-        }
-        .card {
-            background: white;
-            border-radius: 16px;
-            padding: 50px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            max-width: 600px;
-            text-align: center;
-        }
-        h1 {
-            color: #333;
-            margin-bottom: 12px;
-            font-size: 36px;
-        }
-        .tagline {
-            color: #666;
-            font-size: 18px;
-            margin-bottom: 30px;
-        }
-        .features {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 20px;
-            text-align: left;
-            margin: 30px 0;
-        }
-        .feature {
-            padding: 16px;
-            background: #f8f9fa;
+            background: rgba(255,255,255,0.05);
             border-radius: 8px;
+            flex-shrink: 0;
         }
-        .feature h3 {
-            color: #333;
-            font-size: 16px;
-            margin-bottom: 6px;
-        }
-        .feature p {
-            color: #666;
+        .feature-text h3 {
             font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 4px;
         }
-        .slack-btn {
-            display: inline-flex;
-            align-items: center;
-            padding: 16px 32px;
-            background: #4A154B;
-            color: white;
-            text-decoration: none;
-            border-radius: 8px;
-            font-size: 18px;
-            font-weight: 600;
-            margin-top: 20px;
-            transition: background 0.2s;
-        }
-        .slack-btn:hover {
-            background: #611f69;
-        }
-        .slack-btn svg {
-            width: 24px;
-            height: 24px;
-            margin-right: 12px;
-        }
-        .privacy {
-            margin-top: 24px;
+        .feature-text p {
             font-size: 13px;
+            color: #666;
+            line-height: 1.4;
+        }
+        .scopes {
+            font-size: 12px;
+            color: #666;
+            margin-top: 24px;
+        }
+        .scopes summary {
+            cursor: pointer;
             color: #888;
         }
-        .privacy a {
-            color: #667eea;
+        .scopes ul {
+            margin-top: 8px;
+            padding-left: 20px;
         }
     </style>
 </head>
 <body>
-    <div class="card">
-        <h1>Vibe Check</h1>
-        <p class="tagline">Automated standups and feedback collection for Slack</p>
-
-        <div class="features">
-            <div class="feature">
-                <h3>Daily Standups</h3>
-                <p>Automated DMs to collect progress updates from your team</p>
-            </div>
-            <div class="feature">
-                <h3>Weekly Feedback</h3>
-                <p>Friday check-ins to understand how your team is feeling</p>
-            </div>
-            <div class="feature">
-                <h3>Flexible Scheduling</h3>
-                <p>Configure timing per person with timezone support</p>
-            </div>
-            <div class="feature">
-                <h3>Private by Design</h3>
-                <p>Responses go to a private channel you control</p>
-            </div>
-        </div>
-
-        <a href="/slack/install" class="slack-btn">
-            <svg viewBox="0 0 24 24" fill="currentColor">
-                <path d="M5.042 15.165a2.528 2.528 0 0 1-2.52 2.523A2.528 2.528 0 0 1 0 15.165a2.527 2.527 0 0 1 2.522-2.52h2.52v2.52zM6.313 15.165a2.527 2.527 0 0 1 2.521-2.52 2.527 2.527 0 0 1 2.521 2.52v6.313A2.528 2.528 0 0 1 8.834 24a2.528 2.528 0 0 1-2.521-2.522v-6.313zM8.834 5.042a2.528 2.528 0 0 1-2.521-2.52A2.528 2.528 0 0 1 8.834 0a2.528 2.528 0 0 1 2.521 2.522v2.52H8.834zM8.834 6.313a2.528 2.528 0 0 1 2.521 2.521 2.528 2.528 0 0 1-2.521 2.521H2.522A2.528 2.528 0 0 1 0 8.834a2.528 2.528 0 0 1 2.522-2.521h6.312zM18.956 8.834a2.528 2.528 0 0 1 2.522-2.521A2.528 2.528 0 0 1 24 8.834a2.528 2.528 0 0 1-2.522 2.521h-2.522V8.834zM17.688 8.834a2.528 2.528 0 0 1-2.523 2.521 2.527 2.527 0 0 1-2.52-2.521V2.522A2.527 2.527 0 0 1 15.165 0a2.528 2.528 0 0 1 2.523 2.522v6.312zM15.165 18.956a2.528 2.528 0 0 1 2.523 2.522A2.528 2.528 0 0 1 15.165 24a2.527 2.527 0 0 1-2.52-2.522v-2.522h2.52zM15.165 17.688a2.527 2.527 0 0 1-2.52-2.523 2.526 2.526 0 0 1 2.52-2.52h6.313A2.527 2.527 0 0 1 24 15.165a2.528 2.528 0 0 1-2.522 2.523h-6.313z"/>
+    <nav class="nav">
+        <a href="/" class="nav-brand">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
             </svg>
-            Add to Slack
+            Vibe Check
         </a>
+    </nav>
+    <div class="container">
+        <div class="card">
+            <h1>Add to Slack</h1>
+            <p class="subtitle">Connect Vibe Check to your Slack workspace to start running async standups and vibe checks.</p>
 
-        <p class="privacy">
-            By installing, you agree to our <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>
-        </p>
+            <div class="features">
+                <div class="feature">
+                    <div class="feature-icon">📋</div>
+                    <div class="feature-text">
+                        <h3>Daily standups</h3>
+                        <p>Automated DMs at the time you choose</p>
+                    </div>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon">✨</div>
+                    <div class="feature-text">
+                        <h3>Friday vibe checks</h3>
+                        <p>Fun end-of-week pulse on team morale</p>
+                    </div>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon">🔒</div>
+                    <div class="feature-text">
+                        <h3>Private & secure</h3>
+                        <p>Data encrypted, you control the channel</p>
+                    </div>
+                </div>
+            </div>
+
+            <a href="/slack/install" class="btn btn-primary">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M5.042 15.165a2.528 2.528 0 0 1-2.52 2.523A2.528 2.528 0 0 1 0 15.165a2.527 2.527 0 0 1 2.522-2.52h2.52v2.52zM6.313 15.165a2.527 2.527 0 0 1 2.521-2.52 2.527 2.527 0 0 1 2.521 2.52v6.313A2.528 2.528 0 0 1 8.834 24a2.528 2.528 0 0 1-2.521-2.522v-6.313zM8.834 5.042a2.528 2.528 0 0 1-2.521-2.52A2.528 2.528 0 0 1 8.834 0a2.528 2.528 0 0 1 2.521 2.522v2.52H8.834zM8.834 6.313a2.528 2.528 0 0 1 2.521 2.521 2.528 2.528 0 0 1-2.521 2.521H2.522A2.528 2.528 0 0 1 0 8.834a2.528 2.528 0 0 1 2.522-2.521h6.312zM18.956 8.834a2.528 2.528 0 0 1 2.522-2.521A2.528 2.528 0 0 1 24 8.834a2.528 2.528 0 0 1-2.522 2.521h-2.522V8.834zM17.688 8.834a2.528 2.528 0 0 1-2.523 2.521 2.527 2.527 0 0 1-2.52-2.521V2.522A2.527 2.527 0 0 1 15.165 0a2.528 2.528 0 0 1 2.523 2.522v6.312zM15.165 18.956a2.528 2.528 0 0 1 2.523 2.522A2.528 2.528 0 0 1 15.165 24a2.527 2.527 0 0 1-2.52-2.522v-2.522h2.52zM15.165 17.688a2.527 2.527 0 0 1-2.52-2.523 2.526 2.526 0 0 1 2.52-2.52h6.313A2.527 2.527 0 0 1 24 15.165a2.528 2.528 0 0 1-2.522 2.523h-6.313z"/>
+                </svg>
+                Continue with Slack
+            </a>
+            <a href="/" class="btn btn-secondary">Learn more</a>
+
+            <details class="scopes">
+                <summary>Permissions requested</summary>
+                <ul>
+                    <li>Send messages as Vibe Check</li>
+                    <li>Send direct messages to users</li>
+                    <li>View basic user info</li>
+                    <li>Access channels you select</li>
+                </ul>
+            </details>
+        </div>
     </div>
 </body>
 </html>

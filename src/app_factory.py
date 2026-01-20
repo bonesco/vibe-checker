@@ -137,143 +137,243 @@ def create_flask_app(slack_app: App) -> Flask:
             <head>
                 <meta charset="UTF-8">
                 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                <title>Vibe Check - Slack App for Team Check-ins</title>
-                <meta name="description" content="Automated daily standups and Friday vibe checks for Slack. Keep your team connected with fun, authentic check-ins.">
+                <title>Vibe Check - Async standups for Slack</title>
+                <meta name="description" content="Automated daily standups and Friday vibe checks for Slack teams.">
+                <link rel="preconnect" href="https://fonts.googleapis.com">
+                <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+                <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
                 <style>
                     * { box-sizing: border-box; margin: 0; padding: 0; }
                     body {
-                        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-                        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+                        background: #0a0a0a;
+                        color: #fafafa;
                         min-height: 100vh;
-                        padding: 40px 20px;
+                        -webkit-font-smoothing: antialiased;
                     }
-                    .container {
-                        max-width: 700px;
-                        margin: 0 auto;
+                    .nav {
+                        padding: 20px 40px;
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: center;
+                        border-bottom: 1px solid rgba(255,255,255,0.1);
                     }
+                    .nav-brand {
+                        font-weight: 600;
+                        font-size: 15px;
+                        color: #fafafa;
+                        text-decoration: none;
+                        display: flex;
+                        align-items: center;
+                        gap: 8px;
+                    }
+                    .nav-links { display: flex; gap: 32px; }
+                    .nav-links a {
+                        color: #888;
+                        text-decoration: none;
+                        font-size: 14px;
+                        transition: color 0.15s;
+                    }
+                    .nav-links a:hover { color: #fafafa; }
                     .hero {
-                        background: white;
-                        border-radius: 20px;
-                        padding: 50px 40px;
-                        box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+                        max-width: 720px;
+                        margin: 0 auto;
+                        padding: 120px 24px 80px;
                         text-align: center;
-                        margin-bottom: 24px;
                     }
-                    .logo { font-size: 48px; margin-bottom: 8px; }
-                    h1 { color: #333; font-size: 36px; margin-bottom: 12px; }
-                    .tagline { color: #666; font-size: 18px; margin-bottom: 32px; }
-                    .slack-btn {
+                    .badge {
                         display: inline-flex;
                         align-items: center;
-                        padding: 16px 32px;
-                        background: #4A154B;
-                        color: white;
-                        text-decoration: none;
-                        border-radius: 8px;
-                        font-size: 18px;
-                        font-weight: 600;
-                        transition: all 0.2s;
+                        gap: 6px;
+                        padding: 6px 12px;
+                        background: rgba(255,255,255,0.05);
+                        border: 1px solid rgba(255,255,255,0.1);
+                        border-radius: 100px;
+                        font-size: 13px;
+                        color: #888;
                         margin-bottom: 24px;
                     }
-                    .slack-btn:hover {
-                        background: #611f69;
-                        transform: translateY(-2px);
-                        box-shadow: 0 4px 12px rgba(74, 21, 75, 0.4);
+                    .badge-dot {
+                        width: 6px;
+                        height: 6px;
+                        background: #22c55e;
+                        border-radius: 50%;
                     }
-                    .slack-btn svg {
-                        width: 24px;
-                        height: 24px;
-                        margin-right: 12px;
+                    h1 {
+                        font-size: 56px;
+                        font-weight: 600;
+                        letter-spacing: -0.03em;
+                        line-height: 1.1;
+                        margin-bottom: 20px;
+                        background: linear-gradient(180deg, #fff 0%, #888 100%);
+                        -webkit-background-clip: text;
+                        -webkit-text-fill-color: transparent;
                     }
+                    .tagline {
+                        font-size: 18px;
+                        color: #888;
+                        line-height: 1.6;
+                        margin-bottom: 40px;
+                    }
+                    .cta-group {
+                        display: flex;
+                        gap: 12px;
+                        justify-content: center;
+                        flex-wrap: wrap;
+                    }
+                    .btn {
+                        display: inline-flex;
+                        align-items: center;
+                        gap: 8px;
+                        padding: 12px 20px;
+                        border-radius: 8px;
+                        font-size: 14px;
+                        font-weight: 500;
+                        text-decoration: none;
+                        transition: all 0.15s;
+                    }
+                    .btn-primary {
+                        background: #fafafa;
+                        color: #0a0a0a;
+                    }
+                    .btn-primary:hover {
+                        background: #e5e5e5;
+                        transform: translateY(-1px);
+                    }
+                    .btn-secondary {
+                        background: transparent;
+                        color: #888;
+                        border: 1px solid rgba(255,255,255,0.2);
+                    }
+                    .btn-secondary:hover {
+                        color: #fafafa;
+                        border-color: rgba(255,255,255,0.4);
+                    }
+                    .btn svg { width: 18px; height: 18px; }
                     .features {
+                        max-width: 960px;
+                        margin: 0 auto;
+                        padding: 80px 24px;
                         display: grid;
-                        grid-template-columns: repeat(2, 1fr);
-                        gap: 16px;
-                        margin: 32px 0;
-                        text-align: left;
+                        grid-template-columns: repeat(3, 1fr);
+                        gap: 1px;
+                        background: rgba(255,255,255,0.1);
+                        border-radius: 16px;
+                        overflow: hidden;
                     }
                     .feature {
-                        background: #f8f9fa;
-                        padding: 20px;
-                        border-radius: 12px;
+                        background: #0a0a0a;
+                        padding: 32px;
+                    }
+                    .feature-icon {
+                        width: 40px;
+                        height: 40px;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        background: rgba(255,255,255,0.05);
+                        border-radius: 10px;
+                        margin-bottom: 16px;
+                        font-size: 18px;
                     }
                     .feature h3 {
-                        color: #333;
-                        font-size: 16px;
-                        margin-bottom: 6px;
+                        font-size: 15px;
+                        font-weight: 500;
+                        margin-bottom: 8px;
                     }
                     .feature p {
+                        font-size: 14px;
                         color: #666;
-                        font-size: 14px;
-                        line-height: 1.4;
+                        line-height: 1.5;
                     }
-                    .links {
-                        margin-top: 24px;
-                        padding-top: 24px;
-                        border-top: 1px solid #eee;
-                    }
-                    .links a {
-                        color: #667eea;
-                        text-decoration: none;
-                        margin: 0 12px;
-                        font-size: 14px;
-                    }
-                    .links a:hover { text-decoration: underline; }
                     .footer {
+                        padding: 40px 24px;
                         text-align: center;
-                        color: rgba(255,255,255,0.8);
-                        font-size: 14px;
+                        color: #444;
+                        font-size: 13px;
+                        border-top: 1px solid rgba(255,255,255,0.05);
                     }
-                    .footer a { color: white; }
-                    @media (max-width: 500px) {
+                    @media (max-width: 768px) {
+                        .nav { padding: 16px 20px; }
+                        .nav-links { display: none; }
+                        .hero { padding: 80px 20px 60px; }
+                        h1 { font-size: 36px; }
                         .features { grid-template-columns: 1fr; }
-                        .hero { padding: 30px 20px; }
                     }
                 </style>
             </head>
             <body>
-                <div class="container">
-                    <div class="hero">
-                        <div class="logo">✨</div>
-                        <h1>Vibe Check</h1>
-                        <p class="tagline">Daily standups & Friday vibe checks for Slack</p>
+                <nav class="nav">
+                    <a href="/" class="nav-brand">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+                        </svg>
+                        Vibe Check
+                    </a>
+                    <div class="nav-links">
+                        <a href="/health">Status</a>
+                        <a href="/admin">Dashboard</a>
+                        <a href="/slack/add">Install</a>
+                    </div>
+                </nav>
 
-                        <a href="/slack/add" class="slack-btn">
+                <section class="hero">
+                    <div class="badge">
+                        <span class="badge-dot"></span>
+                        Now available for Slack
+                    </div>
+                    <h1>Async standups that your team will actually enjoy</h1>
+                    <p class="tagline">
+                        Automated daily check-ins and Friday vibe checks.
+                        Keep your team connected without the meeting fatigue.
+                    </p>
+                    <div class="cta-group">
+                        <a href="/slack/add" class="btn btn-primary">
                             <svg viewBox="0 0 24 24" fill="currentColor">
                                 <path d="M5.042 15.165a2.528 2.528 0 0 1-2.52 2.523A2.528 2.528 0 0 1 0 15.165a2.527 2.527 0 0 1 2.522-2.52h2.52v2.52zM6.313 15.165a2.527 2.527 0 0 1 2.521-2.52 2.527 2.527 0 0 1 2.521 2.52v6.313A2.528 2.528 0 0 1 8.834 24a2.528 2.528 0 0 1-2.521-2.522v-6.313zM8.834 5.042a2.528 2.528 0 0 1-2.521-2.52A2.528 2.528 0 0 1 8.834 0a2.528 2.528 0 0 1 2.521 2.522v2.52H8.834zM8.834 6.313a2.528 2.528 0 0 1 2.521 2.521 2.528 2.528 0 0 1-2.521 2.521H2.522A2.528 2.528 0 0 1 0 8.834a2.528 2.528 0 0 1 2.522-2.521h6.312zM18.956 8.834a2.528 2.528 0 0 1 2.522-2.521A2.528 2.528 0 0 1 24 8.834a2.528 2.528 0 0 1-2.522 2.521h-2.522V8.834zM17.688 8.834a2.528 2.528 0 0 1-2.523 2.521 2.527 2.527 0 0 1-2.52-2.521V2.522A2.527 2.527 0 0 1 15.165 0a2.528 2.528 0 0 1 2.523 2.522v6.312zM15.165 18.956a2.528 2.528 0 0 1 2.523 2.522A2.528 2.528 0 0 1 15.165 24a2.527 2.527 0 0 1-2.52-2.522v-2.522h2.52zM15.165 17.688a2.527 2.527 0 0 1-2.52-2.523 2.526 2.526 0 0 1 2.52-2.52h6.313A2.527 2.527 0 0 1 24 15.165a2.528 2.528 0 0 1-2.522 2.523h-6.313z"/>
                             </svg>
                             Add to Slack
                         </a>
-
-                        <div class="features">
-                            <div class="feature">
-                                <h3>Daily Standups</h3>
-                                <p>Automated DMs to check in on progress, plans, and blockers</p>
-                            </div>
-                            <div class="feature">
-                                <h3>Friday Vibe Checks</h3>
-                                <p>Fun end-of-week check-ins to see how everyone's really doing</p>
-                            </div>
-                            <div class="feature">
-                                <h3>Flexible Scheduling</h3>
-                                <p>Daily or weekly, with timezone support for remote teams</p>
-                            </div>
-                            <div class="feature">
-                                <h3>Private & Secure</h3>
-                                <p>Responses stay private until shared to your team channel</p>
-                            </div>
-                        </div>
-
-                        <div class="links">
-                            <a href="/health">Health Status</a>
-                            <a href="/admin">Admin Dashboard</a>
-                        </div>
+                        <a href="/admin" class="btn btn-secondary">View Dashboard</a>
                     </div>
+                </section>
 
-                    <p class="footer">
-                        Made with care for happier teams
-                    </p>
-                </div>
+                <section class="features">
+                    <div class="feature">
+                        <div class="feature-icon">📋</div>
+                        <h3>Daily Standups</h3>
+                        <p>Automated DMs at the time you choose. Responses collected and shared to your team channel.</p>
+                    </div>
+                    <div class="feature">
+                        <div class="feature-icon">✨</div>
+                        <h3>Friday Vibe Checks</h3>
+                        <p>Fun end-of-week check-ins with a more casual tone. See how your team is really feeling.</p>
+                    </div>
+                    <div class="feature">
+                        <div class="feature-icon">🌍</div>
+                        <h3>Timezone Support</h3>
+                        <p>Each team member gets messages at their local time. Perfect for distributed teams.</p>
+                    </div>
+                    <div class="feature">
+                        <div class="feature-icon">⚡</div>
+                        <h3>Flexible Scheduling</h3>
+                        <p>Daily standups, weekly check-ins, or both. Configure per person based on their role.</p>
+                    </div>
+                    <div class="feature">
+                        <div class="feature-icon">🔒</div>
+                        <h3>Private by Default</h3>
+                        <p>Responses go to a channel you control. Encrypted tokens and secure data handling.</p>
+                    </div>
+                    <div class="feature">
+                        <div class="feature-icon">📊</div>
+                        <h3>Admin Dashboard</h3>
+                        <p>Manage clients, view response history, and monitor scheduled jobs from one place.</p>
+                    </div>
+                </section>
+
+                <footer class="footer">
+                    Built for teams who value async communication
+                </footer>
             </body>
         </html>
         """

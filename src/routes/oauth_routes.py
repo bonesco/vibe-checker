@@ -52,13 +52,6 @@ def install():
         return render_template_string(ERROR_TEMPLATE,
             error="OAuth not configured. Missing SLACK_CLIENT_ID.")
 
-    # Build the OAuth URL
-    authorize_url_generator = AuthorizeUrlGenerator(
-        client_id=settings['client_id'],
-        scopes=settings['scopes'],
-        user_scopes=settings['user_scopes'],
-    )
-
     # Get the callback URL
     # Use RAILWAY_STATIC_URL if available, otherwise build from request
     base_url = os.environ.get('RAILWAY_STATIC_URL') or os.environ.get('APP_URL')
@@ -67,6 +60,14 @@ def install():
     else:
         redirect_uri = url_for('oauth.oauth_callback', _external=True)
 
+    # Build the OAuth URL with redirect_uri in constructor
+    authorize_url_generator = AuthorizeUrlGenerator(
+        client_id=settings['client_id'],
+        scopes=settings['scopes'],
+        user_scopes=settings['user_scopes'],
+        redirect_uri=redirect_uri,
+    )
+
     # Generate authorization URL with state for CSRF protection
     import secrets
     state = secrets.token_urlsafe(32)
@@ -74,10 +75,7 @@ def install():
     # In production, you'd store this state in a session or database
     # For simplicity, we'll skip state validation but include it
 
-    auth_url = authorize_url_generator.generate(
-        state=state,
-        redirect_uri=redirect_uri
-    )
+    auth_url = authorize_url_generator.generate(state=state)
 
     logger.info(f"Redirecting to OAuth with redirect_uri: {redirect_uri}")
     return redirect(auth_url)

@@ -40,7 +40,19 @@ def register(app):
             vibe_check_enabled = len(vibe_check_values) > 0
 
             # Get workspace
-            workspace = get_workspace_by_team_id(body["team"]["id"])
+            team_id = body["team"]["id"]
+            logger.info(f"Looking up workspace for team_id: {team_id}")
+            workspace = get_workspace_by_team_id(team_id)
+
+            if not workspace:
+                logger.error(f"Workspace not found for team_id: {team_id}")
+                client.chat_postMessage(
+                    channel=body["user"]["id"],
+                    text="❌ Failed to add client: Workspace not found. Please reinstall the app."
+                )
+                return
+
+            logger.info(f"Found workspace: {workspace.id}")
 
             # Get user info from Slack
             user_info = client.users_info(user=user_id)
@@ -79,7 +91,9 @@ def register(app):
             )
 
         except Exception as e:
+            import traceback
             logger.error(f"Error handling add client submission: {e}")
+            logger.error(traceback.format_exc())
             client.chat_postMessage(
                 channel=body["user"]["id"],
                 text="❌ Failed to add client. Please try again or contact support if the issue persists."

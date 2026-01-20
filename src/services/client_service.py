@@ -93,44 +93,77 @@ def add_client(
 
         session.flush()
 
-        # Schedule jobs - now relationships are properly established
-        add_standup_job(standup_config)
-        if vibe_check_enabled:
-            add_feedback_job(feedback_config)
+        # Store IDs for job scheduling (before potential detach)
+        client_id = client.id
+        client_workspace_id = client.workspace_id
+        client_timezone = client.timezone
 
-        logger.info(f"Added client: {slack_user_id} (ID: {client.id})")
+        # Schedule jobs - now relationships are properly established
+        try:
+            add_standup_job(standup_config)
+            if vibe_check_enabled:
+                add_feedback_job(feedback_config)
+        except Exception as e:
+            logger.error(f"Failed to schedule jobs for client {client_id}: {e}")
+            # Jobs failed but client was created - log and continue
+
+        logger.info(f"Added client: {slack_user_id} (ID: {client_id})")
+
+        # Expunge to return detached object
+        session.expunge(client)
         return client
 
 
 def get_client(client_id: int) -> Optional[Client]:
     """Get client by ID"""
+    from sqlalchemy.orm import joinedload
     session = get_session()
     try:
-        return session.query(Client).filter_by(id=client_id).first()
+        client = session.query(Client).options(
+            joinedload(Client.standup_config),
+            joinedload(Client.feedback_config)
+        ).filter_by(id=client_id).first()
+        if client:
+            session.expunge(client)
+        return client
     finally:
         session.close()
 
 
 def get_client_by_slack_id(workspace_id: int, slack_user_id: str) -> Optional[Client]:
     """Get client by Slack user ID"""
+    from sqlalchemy.orm import joinedload
     session = get_session()
     try:
-        return session.query(Client).filter_by(
+        client = session.query(Client).options(
+            joinedload(Client.standup_config),
+            joinedload(Client.feedback_config)
+        ).filter_by(
             workspace_id=workspace_id,
             slack_user_id=slack_user_id
         ).first()
+        if client:
+            session.expunge(client)
+        return client
     finally:
         session.close()
 
 
 def get_workspace_clients(workspace_id: int, active_only: bool = True) -> List[Client]:
     """Get all clients for a workspace"""
+    from sqlalchemy.orm import joinedload
     session = get_session()
     try:
-        query = session.query(Client).filter_by(workspace_id=workspace_id)
+        query = session.query(Client).options(
+            joinedload(Client.standup_config),
+            joinedload(Client.feedback_config)
+        ).filter_by(workspace_id=workspace_id)
         if active_only:
             query = query.filter_by(is_active=True)
-        return query.all()
+        clients = query.all()
+        for client in clients:
+            session.expunge(client)
+        return clients
     finally:
         session.close()
 

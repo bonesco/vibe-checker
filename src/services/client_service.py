@@ -27,7 +27,7 @@ def add_client(
     schedule_type: str,
     schedule_time: dt_time,
     vibe_check_enabled: bool = True
-) -> Client:
+) -> dict:
     """
     Add a new client with default configurations
 
@@ -42,11 +42,13 @@ def add_client(
         vibe_check_enabled: Whether to enable Friday vibe checks (default: True)
 
     Returns:
-        Created Client instance
+        Dict with client info: {id, slack_user_id, display_name}
 
     Raises:
         ClientAlreadyExistsError: If a client with this Slack user ID already exists in the workspace
     """
+    client_id = None
+
     with db_transaction() as session:
         # Check for existing client
         existing = session.query(Client).filter_by(
@@ -70,48 +72,45 @@ def add_client(
         session.add(client)
         session.flush()  # Get client ID
 
-        # Create standup config - use relationship to ensure proper ORM linking
+        client_id = client.id
+
+        # Create standup config with client_id directly
         standup_config = StandupConfig(
+            client_id=client_id,
             schedule_type=schedule_type,
             schedule_time=schedule_time,
             is_paused=False
         )
-        # Set relationship directly so ORM properly links objects
-        standup_config.client = client
-        client.standup_config = standup_config
         session.add(standup_config)
 
         # Create feedback config (Friday vibe checks)
         feedback_config = FeedbackConfig(
+            client_id=client_id,
             schedule_time=dt_time(15, 0),  # 3 PM default
             is_enabled=vibe_check_enabled
         )
-        # Set relationship directly so ORM properly links objects
-        feedback_config.client = client
-        client.feedback_config = feedback_config
         session.add(feedback_config)
 
+        # Flush to ensure all objects have IDs
         session.flush()
-
-        # Store IDs for job scheduling (before potential detach)
-        client_id = client.id
-        client_workspace_id = client.workspace_id
-        client_timezone = client.timezone
-
-        # Schedule jobs - now relationships are properly established
-        try:
-            add_standup_job(standup_config)
-            if vibe_check_enabled:
-                add_feedback_job(feedback_config)
-        except Exception as e:
-            logger.error(f"Failed to schedule jobs for client {client_id}: {e}")
-            # Jobs failed but client was created - log and continue
 
         logger.info(f"Added client: {slack_user_id} (ID: {client_id})")
 
-        # Expunge to return detached object
-        session.expunge(client)
-        return client
+    # Transaction committed - now schedule jobs outside the transaction
+    # Fetch fresh objects to avoid detached instance issues
+    try:
+        fresh_client = get_client(client_id)
+        if fresh_client and fresh_client.standup_config:
+            add_standup_job(fresh_client.standup_config)
+        if vibe_check_enabled and fresh_client and fresh_client.feedback_config:
+            add_feedback_job(fresh_client.feedback_config)
+    except Exception as e:
+        logger.error(f"Failed to schedule jobs for client {client_id}: {e}")
+        import traceback
+        logger.error(traceback.format_exc())
+        # Jobs failed but client was created - log and continue
+
+    return {"id": client_id, "slack_user_id": slack_user_id, "display_name": display_name}
 
 
 def get_client(client_id: int) -> Optional[Client]:

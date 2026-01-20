@@ -289,80 +289,143 @@ LOGIN_TEMPLATE = '''
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Login - Vibe Check</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #0a0a0a;
+            color: #fafafa;
             min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            -webkit-font-smoothing: antialiased;
+        }
+        .nav {
+            padding: 20px 40px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        .nav-brand {
+            font-weight: 600;
+            font-size: 15px;
+            color: #fafafa;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .container {
+            flex: 1;
             display: flex;
             align-items: center;
             justify-content: center;
+            padding: 40px 24px;
         }
         .login-card {
-            background: white;
-            border-radius: 16px;
-            padding: 40px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
             width: 100%;
-            max-width: 400px;
+            max-width: 360px;
         }
-        h1 { color: #333; margin-bottom: 8px; text-align: center; }
-        .subtitle { color: #666; margin-bottom: 30px; text-align: center; }
+        h1 {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            letter-spacing: -0.02em;
+        }
+        .subtitle {
+            color: #888;
+            font-size: 15px;
+            margin-bottom: 32px;
+        }
         .form-group { margin-bottom: 20px; }
-        label { display: block; margin-bottom: 6px; color: #555; font-weight: 500; }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #888;
+            font-size: 13px;
+            font-weight: 500;
+        }
         input[type="password"] {
             width: 100%;
             padding: 12px 16px;
-            border: 2px solid #e1e5e9;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
             border-radius: 8px;
-            font-size: 16px;
-            transition: border-color 0.2s;
+            font-size: 15px;
+            color: #fafafa;
+            font-family: inherit;
+            transition: border-color 0.15s;
         }
         input[type="password"]:focus {
             outline: none;
-            border-color: #667eea;
+            border-color: rgba(255,255,255,0.3);
+        }
+        input[type="password"]::placeholder {
+            color: #666;
         }
         button {
             width: 100%;
-            padding: 14px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
+            padding: 12px;
+            background: #fafafa;
+            color: #0a0a0a;
             border: none;
             border-radius: 8px;
-            font-size: 16px;
-            font-weight: 600;
+            font-size: 14px;
+            font-weight: 500;
             cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
+            font-family: inherit;
+            transition: background 0.15s;
         }
         button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+            background: #e5e5e5;
         }
         .error {
-            background: #fee;
-            color: #c00;
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            color: #fca5a5;
             padding: 12px;
             border-radius: 8px;
             margin-bottom: 20px;
             text-align: center;
+            font-size: 14px;
         }
+        .back-link {
+            display: block;
+            text-align: center;
+            margin-top: 24px;
+            color: #666;
+            font-size: 13px;
+            text-decoration: none;
+        }
+        .back-link:hover { color: #888; }
     </style>
 </head>
 <body>
-    <div class="login-card">
-        <h1>Vibe Check</h1>
-        <p class="subtitle">Admin Dashboard</p>
-        {% if error %}
-        <div class="error">{{ error }}</div>
-        {% endif %}
-        <form method="POST">
-            <div class="form-group">
-                <label for="password">Admin Password</label>
-                <input type="password" id="password" name="password" placeholder="Enter admin password" required autofocus>
-            </div>
-            <button type="submit">Sign In</button>
-        </form>
+    <nav class="nav">
+        <a href="/" class="nav-brand">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+            </svg>
+            Vibe Check
+        </a>
+    </nav>
+    <div class="container">
+        <div class="login-card">
+            <h1>Admin Dashboard</h1>
+            <p class="subtitle">Enter your password to continue</p>
+            {% if error %}
+            <div class="error">{{ error }}</div>
+            {% endif %}
+            <form method="POST">
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password" placeholder="Enter admin password" required autofocus>
+                </div>
+                <button type="submit">Sign in</button>
+            </form>
+            <a href="/" class="back-link">Back to home</a>
+        </div>
     </div>
 </body>
 </html>
@@ -375,218 +438,262 @@ DASHBOARD_TEMPLATE = '''
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard - Vibe Check</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #f5f7fa;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #0a0a0a;
+            color: #fafafa;
             min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
         }
         .sidebar {
             position: fixed;
             left: 0;
             top: 0;
             bottom: 0;
-            width: 240px;
-            background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
-            padding: 20px;
-            color: white;
+            width: 220px;
+            background: #0a0a0a;
+            border-right: 1px solid rgba(255,255,255,0.1);
+            padding: 20px 12px;
+            display: flex;
+            flex-direction: column;
         }
-        .sidebar h1 {
-            font-size: 24px;
-            margin-bottom: 8px;
+        .sidebar-brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 12px;
+            margin-bottom: 24px;
+            text-decoration: none;
+            color: #fafafa;
         }
-        .sidebar .subtitle {
-            font-size: 12px;
-            opacity: 0.8;
-            margin-bottom: 30px;
+        .sidebar-brand span { font-weight: 600; font-size: 15px; }
+        .nav-section {
+            font-size: 11px;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            padding: 8px 12px;
+            margin-top: 16px;
         }
         .nav-link {
-            display: block;
-            padding: 12px 16px;
-            color: white;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            color: #888;
             text-decoration: none;
-            border-radius: 8px;
-            margin-bottom: 4px;
-            transition: background 0.2s;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: all 0.15s;
         }
-        .nav-link:hover, .nav-link.active {
-            background: rgba(255,255,255,0.2);
-        }
-        .nav-link.active {
-            background: rgba(255,255,255,0.3);
-            font-weight: 600;
-        }
-        .logout-link {
-            position: absolute;
-            bottom: 20px;
-            left: 20px;
-            right: 20px;
+        .nav-link:hover { color: #fafafa; background: rgba(255,255,255,0.05); }
+        .nav-link.active { color: #fafafa; background: rgba(255,255,255,0.1); }
+        .nav-link svg { width: 16px; height: 16px; opacity: 0.7; }
+        .sidebar-footer {
+            margin-top: auto;
+            padding-top: 16px;
+            border-top: 1px solid rgba(255,255,255,0.1);
         }
         .main-content {
-            margin-left: 240px;
-            padding: 30px;
+            margin-left: 220px;
+            min-height: 100vh;
         }
-        .page-header {
-            margin-bottom: 30px;
+        .top-bar {
+            padding: 16px 32px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
+        .page-title { font-size: 14px; font-weight: 500; }
+        .content { padding: 32px; }
+        .page-header { margin-bottom: 32px; }
         .page-header h2 {
-            color: #333;
-            font-size: 28px;
+            font-size: 24px;
+            font-weight: 600;
+            letter-spacing: -0.02em;
+            margin-bottom: 4px;
         }
-        .page-header p {
-            color: #666;
-            margin-top: 4px;
-        }
+        .page-header p { color: #888; font-size: 14px; }
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 16px;
+            margin-bottom: 32px;
         }
         .stat-card {
-            background: white;
+            background: rgba(255,255,255,0.02);
+            border: 1px solid rgba(255,255,255,0.1);
             border-radius: 12px;
-            padding: 24px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            padding: 20px;
         }
         .stat-card .label {
-            font-size: 14px;
+            font-size: 13px;
             color: #666;
             margin-bottom: 8px;
         }
         .stat-card .value {
-            font-size: 32px;
-            font-weight: 700;
-            color: #333;
+            font-size: 28px;
+            font-weight: 600;
+            letter-spacing: -0.02em;
         }
-        .stat-card .value.green { color: #28a745; }
-        .stat-card .value.blue { color: #667eea; }
-        .stat-card .value.orange { color: #fd7e14; }
+        .stat-card .value.green { color: #22c55e; }
+        .stat-card .value.blue { color: #3b82f6; }
+        .stat-card .value.orange { color: #f97316; }
+        .stat-card .value.red { color: #ef4444; }
         .card {
-            background: white;
+            background: rgba(255,255,255,0.02);
+            border: 1px solid rgba(255,255,255,0.1);
             border-radius: 12px;
-            padding: 24px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
             margin-bottom: 20px;
+            overflow: hidden;
         }
-        .card h3 {
-            color: #333;
-            margin-bottom: 16px;
-            font-size: 18px;
+        .card-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            font-size: 14px;
+            font-weight: 500;
         }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
+        .card-body { padding: 20px; }
+        table { width: 100%; border-collapse: collapse; }
         th, td {
-            padding: 12px;
+            padding: 12px 16px;
             text-align: left;
-            border-bottom: 1px solid #eee;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
         }
         th {
-            font-weight: 600;
+            font-weight: 500;
             color: #666;
             font-size: 12px;
             text-transform: uppercase;
+            letter-spacing: 0.03em;
+        }
+        td { font-size: 14px; }
+        code {
+            background: rgba(255,255,255,0.1);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'SF Mono', Monaco, monospace;
+            font-size: 13px;
         }
         .badge {
-            display: inline-block;
+            display: inline-flex;
+            align-items: center;
             padding: 4px 10px;
-            border-radius: 20px;
+            border-radius: 100px;
             font-size: 12px;
-            font-weight: 600;
+            font-weight: 500;
         }
-        .badge.green { background: #d4edda; color: #155724; }
-        .badge.yellow { background: #fff3cd; color: #856404; }
-        .badge.red { background: #f8d7da; color: #721c24; }
-        .badge.blue { background: #cce5ff; color: #004085; }
+        .badge.green { background: rgba(34,197,94,0.1); color: #22c55e; }
+        .badge.yellow { background: rgba(234,179,8,0.1); color: #eab308; }
+        .badge.red { background: rgba(239,68,68,0.1); color: #ef4444; }
+        .badge.blue { background: rgba(59,130,246,0.1); color: #3b82f6; }
         .btn {
-            display: inline-block;
-            padding: 8px 16px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 14px;
             border-radius: 6px;
-            font-size: 14px;
+            font-size: 13px;
             font-weight: 500;
             text-decoration: none;
             cursor: pointer;
             border: none;
-            transition: all 0.2s;
+            transition: all 0.15s;
+            font-family: inherit;
         }
-        .btn-primary {
-            background: #667eea;
-            color: white;
-        }
-        .btn-primary:hover {
-            background: #5a6fd6;
-        }
-        .btn-danger {
-            background: #dc3545;
-            color: white;
-        }
-        .btn-danger:hover {
-            background: #c82333;
-        }
+        .btn-primary { background: #fafafa; color: #0a0a0a; }
+        .btn-primary:hover { background: #e5e5e5; }
         .btn-secondary {
-            background: #6c757d;
-            color: white;
+            background: transparent;
+            color: #888;
+            border: 1px solid rgba(255,255,255,0.2);
         }
-        .btn-sm {
-            padding: 4px 10px;
-            font-size: 12px;
-        }
+        .btn-secondary:hover { color: #fafafa; border-color: rgba(255,255,255,0.4); }
+        .btn-danger { background: rgba(239,68,68,0.1); color: #ef4444; }
+        .btn-danger:hover { background: rgba(239,68,68,0.2); }
+        .btn-sm { padding: 6px 10px; font-size: 12px; }
         .alert {
             padding: 16px;
             border-radius: 8px;
             margin-bottom: 20px;
+            font-size: 14px;
         }
         .alert-warning {
-            background: #fff3cd;
-            color: #856404;
-            border: 1px solid #ffeeba;
+            background: rgba(234,179,8,0.1);
+            color: #eab308;
+            border: 1px solid rgba(234,179,8,0.2);
         }
         .alert-info {
-            background: #d1ecf1;
-            color: #0c5460;
-            border: 1px solid #bee5eb;
+            background: rgba(59,130,246,0.1);
+            color: #3b82f6;
+            border: 1px solid rgba(59,130,246,0.2);
         }
         .empty-state {
             text-align: center;
             padding: 60px 20px;
             color: #666;
         }
-        .empty-state h3 {
-            color: #333;
-            margin-bottom: 8px;
+        .empty-state h3 { color: #888; margin-bottom: 8px; font-size: 16px; }
+        .empty-state p { font-size: 14px; }
+        @media (max-width: 768px) {
+            .sidebar { width: 100%; position: relative; border-right: none; border-bottom: 1px solid rgba(255,255,255,0.1); }
+            .main-content { margin-left: 0; }
         }
     </style>
 </head>
 <body>
     <nav class="sidebar">
-        <h1>Vibe Check</h1>
-        <p class="subtitle">Admin Dashboard</p>
+        <a href="/" class="sidebar-brand">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+            </svg>
+            <span>Vibe Check</span>
+        </a>
 
+        <div class="nav-section">Overview</div>
         <a href="{{ url_for('admin.dashboard') }}" class="nav-link {% if page == 'dashboard' %}active{% endif %}">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
             Dashboard
         </a>
-        <a href="{{ url_for('admin.clients') }}" class="nav-link {% if page == 'clients' %}active{% endif %}">
-            Clients
-        </a>
         <a href="{{ url_for('admin.analytics') }}" class="nav-link {% if page == 'analytics' %}active{% endif %}">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>
             Analytics
         </a>
+
+        <div class="nav-section">Manage</div>
+        <a href="{{ url_for('admin.clients') }}" class="nav-link {% if page == 'clients' %}active{% endif %}">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            Clients
+        </a>
         <a href="{{ url_for('admin.jobs') }}" class="nav-link {% if page == 'jobs' %}active{% endif %}">
-            Scheduled Jobs
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            Jobs
         </a>
         <a href="{{ url_for('admin.settings') }}" class="nav-link {% if page == 'settings' %}active{% endif %}">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
             Settings
         </a>
 
-        <a href="{{ url_for('admin.logout') }}" class="nav-link logout-link">
-            Logout
-        </a>
+        <div class="sidebar-footer">
+            <a href="{{ url_for('admin.logout') }}" class="nav-link">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg>
+                Logout
+            </a>
+        </div>
     </nav>
 
     <main class="main-content">
+        <div class="top-bar">
+            <span class="page-title">{% if page == 'dashboard' %}Dashboard{% elif page == 'clients' %}Clients{% elif page == 'analytics' %}Analytics{% elif page == 'jobs' %}Scheduled Jobs{% elif page == 'settings' %}Settings{% endif %}</span>
+        </div>
+
+        <div class="content">
         {% if page == 'error' %}
         <div class="page-header">
             <h2>Configuration Error</h2>
@@ -832,6 +939,7 @@ DASHBOARD_TEMPLATE = '''
         </div>
 
         {% endif %}
+        </div>
     </main>
 
     <script>

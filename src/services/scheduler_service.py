@@ -289,11 +289,8 @@ def add_data_retention_job():
 
     job_id = "data_retention_cleanup"
 
-    # Remove existing job if present
-    if scheduler.get_job(job_id):
-        scheduler.remove_job(job_id)
-
     # Create weekly trigger (Sundays at 2:00 AM UTC)
+    # Note: replace_existing=True handles updating if job already exists
     trigger = CronTrigger(
         day_of_week='sun',
         hour=2,

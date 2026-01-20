@@ -1,6 +1,8 @@
 """Slack Bolt app factory"""
 
 import os
+import secrets
+from datetime import timedelta
 from slack_bolt import App
 from slack_bolt.adapter.flask import SlackRequestHandler
 from flask import Flask, request, jsonify
@@ -59,6 +61,22 @@ def create_flask_app(slack_app: App) -> Flask:
     """
     flask_app = Flask(__name__)
     handler = SlackRequestHandler(slack_app)
+
+    # Configure Flask for sessions (used by admin dashboard)
+    flask_app.secret_key = os.environ.get('FLASK_SECRET_KEY', secrets.token_hex(32))
+    flask_app.permanent_session_lifetime = timedelta(hours=24)
+
+    # Register admin dashboard blueprint
+    from src.routes.admin_routes import admin_bp
+    flask_app.register_blueprint(admin_bp)
+
+    # Register OAuth routes for multi-workspace installation
+    from src.routes.oauth_routes import oauth_bp
+    flask_app.register_blueprint(oauth_bp)
+
+    # Setup security middleware (rate limiting, security headers)
+    from src.middleware.security_middleware import setup_security_middleware
+    setup_security_middleware(flask_app)
 
     @flask_app.route("/slack/events", methods=["POST"])
     def slack_events():
@@ -181,7 +199,9 @@ def create_flask_app(slack_app: App) -> Flask:
                     </div>
 
                     <p style="color: #888; font-size: 14px;">
-                        Health check: <a href="/health">/health</a>
+                        Health check: <a href="/health">/health</a><br>
+                        Admin dashboard: <a href="/admin">/admin</a><br>
+                        <a href="/slack/add" style="display: inline-block; margin-top: 16px; padding: 10px 20px; background: #4A154B; color: white; text-decoration: none; border-radius: 6px;">Add to Slack</a>
                     </p>
                 </div>
             </body>

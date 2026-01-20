@@ -37,6 +37,11 @@ class Config:
     REMINDER_DELAY_HOURS: int = 4
     DATA_RETENTION_DAYS: int = 90
 
+    # Optional - Admin Dashboard
+    ADMIN_DASHBOARD_SECRET: Optional[str] = None  # Password for web admin dashboard
+    FLASK_SECRET_KEY: Optional[str] = None  # Session encryption key (auto-generated if not set)
+    ADMIN_USER_ID: Optional[str] = None  # Initial Slack admin user ID
+
     @classmethod
     def from_env(cls):
         """Create config from environment variables"""
@@ -61,7 +66,12 @@ class Config:
             # Features
             ENABLE_REMINDERS=os.getenv('ENABLE_REMINDERS', 'true').lower() == 'true',
             REMINDER_DELAY_HOURS=int(os.getenv('REMINDER_DELAY_HOURS', '4')),
-            DATA_RETENTION_DAYS=int(os.getenv('DATA_RETENTION_DAYS', '90'))
+            DATA_RETENTION_DAYS=int(os.getenv('DATA_RETENTION_DAYS', '90')),
+
+            # Admin Dashboard
+            ADMIN_DASHBOARD_SECRET=os.getenv('ADMIN_DASHBOARD_SECRET'),
+            FLASK_SECRET_KEY=os.getenv('FLASK_SECRET_KEY'),
+            ADMIN_USER_ID=os.getenv('ADMIN_USER_ID')
         )
 
     def validate(self):

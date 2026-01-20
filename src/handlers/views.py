@@ -35,6 +35,10 @@ def register(app):
             hour, minute = map(int, time_str.split(":"))
             schedule_time = dt_time(hour=hour, minute=minute)
 
+            # Check if Friday Vibe Check is enabled (checkbox)
+            vibe_check_values = values.get("vibe_check", {}).get("vibe_check_toggle", {}).get("selected_options", [])
+            vibe_check_enabled = len(vibe_check_values) > 0
+
             # Get workspace
             workspace = get_workspace_by_team_id(body["team"]["id"])
 
@@ -51,14 +55,17 @@ def register(app):
                 email=email,
                 timezone=timezone,
                 schedule_type=schedule_type,
-                schedule_time=schedule_time
+                schedule_time=schedule_time,
+                vibe_check_enabled=vibe_check_enabled
             )
 
-            # Send confirmation
+            # Build confirmation message
+            vibe_status = "Enabled" if vibe_check_enabled else "Disabled"
             client.chat_postMessage(
                 channel=body["user"]["id"],
                 text=f"✅ Successfully added <@{user_id}> as a client!\n"
-                     f"• Schedule: {schedule_type} at {schedule_time.strftime('%I:%M %p')}\n"
+                     f"• Standups: {schedule_type} at {schedule_time.strftime('%I:%M %p')}\n"
+                     f"• Friday Vibe Check: {vibe_status}\n"
                      f"• Timezone: {timezone}"
             )
 

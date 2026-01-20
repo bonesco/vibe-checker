@@ -56,6 +56,9 @@ def install():
     # Use RAILWAY_STATIC_URL if available, otherwise build from request
     base_url = os.environ.get('RAILWAY_STATIC_URL') or os.environ.get('APP_URL')
     if base_url:
+        # Ensure URL has https:// prefix
+        if not base_url.startswith('http://') and not base_url.startswith('https://'):
+            base_url = f"https://{base_url}"
         redirect_uri = f"{base_url.rstrip('/')}/slack/oauth_redirect"
     else:
         redirect_uri = url_for('oauth.oauth_callback', _external=True)
@@ -111,6 +114,9 @@ def oauth_callback():
         # Get the redirect URI (must match what was used in install)
         base_url = os.environ.get('RAILWAY_STATIC_URL') or os.environ.get('APP_URL')
         if base_url:
+            # Ensure URL has https:// prefix
+            if not base_url.startswith('http://') and not base_url.startswith('https://'):
+                base_url = f"https://{base_url}"
             redirect_uri = f"{base_url.rstrip('/')}/slack/oauth_redirect"
         else:
             redirect_uri = url_for('oauth.oauth_callback', _external=True)

@@ -263,7 +263,8 @@ def api_health():
     db_session = get_session()
     try:
         # Test database
-        db_session.execute("SELECT 1")
+        from sqlalchemy import text
+        db_session.execute(text("SELECT 1"))
         db_ok = True
     except:
         db_ok = False

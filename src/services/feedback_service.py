@@ -98,6 +98,8 @@ def save_feedback_response(
     Returns:
         Created FeedbackResponse
     """
+    response_id = None
+
     with db_transaction() as session:
         response_time = int((datetime.utcnow() - start_time).total_seconds())
 
@@ -116,16 +118,23 @@ def save_feedback_response(
         )
         session.add(response)
         session.flush()
-
-        # Get client for posting to vibe channel
-        client = session.query(Client).filter_by(id=client_id).first()
+        response_id = response.id
 
         logger.info(f"Saved feedback response for client {client_id} week ending {week_ending}")
 
-    # Post to vibe channel (outside transaction)
-    post_feedback_to_vibe_channel(workspace_id, client, response)
+    # Post to vibe channel outside the transaction using a fresh session
+    # to avoid DetachedInstanceError on expired attributes
+    fresh_response = None
+    session = get_session()
+    try:
+        fresh_response = session.query(FeedbackResponse).filter_by(id=response_id).first()
+        fresh_client = session.query(Client).filter_by(id=client_id).first()
+        if fresh_client and fresh_response:
+            post_feedback_to_vibe_channel(workspace_id, fresh_client, fresh_response)
+    finally:
+        session.close()
 
-    return response
+    return fresh_response
 
 
 def post_feedback_to_vibe_channel(workspace_id: int, client: Client, response: FeedbackResponse):

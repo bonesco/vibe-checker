@@ -97,13 +97,22 @@ def add_client(
         logger.info(f"Added client: {slack_user_id} (ID: {client_id})")
 
     # Transaction committed - now schedule jobs outside the transaction
-    # Fetch fresh objects to avoid detached instance issues
+    # Use a fresh session kept open during scheduling so lazy-loaded
+    # relationships (e.g. standup_config.client) remain accessible
     try:
-        fresh_client = get_client(client_id)
-        if fresh_client and fresh_client.standup_config:
-            add_standup_job(fresh_client.standup_config)
-        if vibe_check_enabled and fresh_client and fresh_client.feedback_config:
-            add_feedback_job(fresh_client.feedback_config)
+        from sqlalchemy.orm import joinedload
+        session = get_session()
+        try:
+            fresh_client = session.query(Client).options(
+                joinedload(Client.standup_config),
+                joinedload(Client.feedback_config)
+            ).filter_by(id=client_id).first()
+            if fresh_client and fresh_client.standup_config:
+                add_standup_job(fresh_client.standup_config)
+            if vibe_check_enabled and fresh_client and fresh_client.feedback_config:
+                add_feedback_job(fresh_client.feedback_config)
+        finally:
+            session.close()
     except Exception as e:
         logger.error(f"Failed to schedule jobs for client {client_id}: {e}")
         import traceback
